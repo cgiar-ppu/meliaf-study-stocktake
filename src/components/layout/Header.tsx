@@ -23,7 +23,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/submissions', label: 'My Submissions', icon: FolderOpen },
+  { to: '/', label: 'My Submissions', icon: FolderOpen },
   { to: '/submit', label: 'Submit Study', icon: FileText },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
