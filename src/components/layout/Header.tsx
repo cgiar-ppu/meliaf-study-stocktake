@@ -40,10 +40,7 @@ export function Header() {
         {/* Logo and Title */}
         <Link to="/" className="flex items-center gap-3">
           <img src={cgiarLogo} alt="CGIAR" className="h-10 w-auto" />
-          <div className="hidden sm:block">
-            <h1 className="text-lg font-semibold text-foreground">MELIAF Study Stocktake</h1>
-            <p className="text-xs text-muted-foreground">CGIAR Research Initiative</p>
-          </div>
+          <h1 className="hidden text-lg font-semibold text-foreground sm:block">MELIAF Study Stocktake</h1>
         </Link>
 
         {/* Desktop Navigation */}
