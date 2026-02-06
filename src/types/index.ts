@@ -193,11 +193,11 @@ export const STUDY_TYPE_OPTIONS: { value: StudyType; label: string; description:
   },
 ];
 
-export const TIMING_OPTIONS: { value: TimingType; label: string }[] = [
-  { value: 't0_ex_ante', label: 'T0: Ex-Ante' },
-  { value: 't1_during', label: 'T1: During Implementation' },
-  { value: 't2_endline', label: 'T2: Endline' },
-  { value: 't3_ex_post', label: 'T3: Ex-Post' },
+export const TIMING_OPTIONS: { value: TimingType; label: string; description: string }[] = [
+  { value: 't0_ex_ante', label: 'T0', description: 'Ex-Ante (before)' },
+  { value: 't1_during', label: 'T1', description: 'During implementation/development (for innov/tech/policy option)' },
+  { value: 't2_endline', label: 'T2', description: 'Endline/immediate post' },
+  { value: 't3_ex_post', label: 'T3', description: 'Ex-post/lagged' },
 ];
 
 export const ANALYTICAL_SCOPE_OPTIONS: { value: AnalyticalScopeType; label: string }[] = [
