@@ -101,11 +101,11 @@ export const studyFormSchema = z.object({
   dataCollectionStatus: z.enum(['planned', 'ongoing', 'complete'], { required_error: 'Data collection status is required' }),
   analysisStatus: z.enum(['planned', 'ongoing', 'complete'], { required_error: 'Analysis status is required' }),
 
-  // Section E - Funding & Resources
-  funded: z.enum(['yes', 'no', 'partial']).optional(),
+  // Section E - Funding & Resources (Mandatory)
+  funded: z.enum(['yes', 'no', 'partial'], { required_error: 'Funding status is required' }),
   fundingSource: z.string().trim().max(200, 'Funding source must be less than 200 characters').optional(),
-  totalCostUSD: z.number().positive().optional().or(z.literal('')),
-  proposalAvailable: yesNoWithRequiredLinkSchema.optional(),
+  totalCostUSD: z.number({ required_error: 'Total cost is required' }).positive('Total cost must be positive'),
+  proposalAvailable: yesNoWithRequiredLinkSchema,
 
   // Section F - Outputs & Users
   manuscriptDeveloped: yesNoWithLinkSchema.optional(),
@@ -131,6 +131,15 @@ export const studyFormSchema = z.object({
 }, {
   message: 'End date must be after start date',
   path: ['expectedEndDate'],
+}).refine((data) => {
+  // Validate funding source is required when funded is 'yes' or 'partial'
+  if (data.funded === 'yes' || data.funded === 'partial') {
+    return data.fundingSource && data.fundingSource.trim().length > 0;
+  }
+  return true;
+}, {
+  message: 'Funding source is required when funded',
+  path: ['fundingSource'],
 });
 
 export type StudyFormData = z.infer<typeof studyFormSchema>;
