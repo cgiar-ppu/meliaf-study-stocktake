@@ -24,7 +24,7 @@ interface SectionEProps {
 
 export function SectionE({ form }: SectionEProps) {
   const funded = form.watch('funded');
-  const showFundingDetails = funded === 'yes' || funded === 'partial';
+  const showFundingSource = funded === 'yes' || funded === 'partial';
 
   return (
     <div className="grid gap-6 sm:grid-cols-2">
@@ -54,11 +54,8 @@ export function SectionE({ form }: SectionEProps) {
         )}
       />
 
-      {/* Placeholder for grid alignment */}
-      <div className="hidden sm:block" />
-
-      {/* Funding Source - conditional */}
-      {showFundingDetails && (
+      {/* Funding Source - conditional, same row as Funded */}
+      {showFundingSource && (
         <FormField
           control={form.control}
           name="fundingSource"
@@ -66,7 +63,7 @@ export function SectionE({ form }: SectionEProps) {
             <FormItem>
               <FormLabel>Funding Source</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Gates Foundation, USAID" {...field} />
+                <Input placeholder="Enter funding source" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -74,46 +71,48 @@ export function SectionE({ form }: SectionEProps) {
         />
       )}
 
-      {/* Total Cost USD - conditional */}
-      {showFundingDetails && (
-        <FormField
-          control={form.control}
-          name="totalCostUSD"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Total Cost (USD)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter amount"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
-                  value={field.value || ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      )}
-
-      {/* Proposal Available */}
+      {/* Total Cost USD - always visible */}
       <FormField
         control={form.control}
-        name="proposalAvailable"
+        name="totalCostUSD"
         render={({ field }) => (
-          <FormItem className="sm:col-span-2">
-            <FormLabel>Proposal/Concept Note Available?</FormLabel>
+          <FormItem>
+            <FormLabel>Total Cost (USD)</FormLabel>
             <FormControl>
-              <YesNoLinkField
-                value={field.value}
-                onChange={field.onChange}
-                linkPlaceholder="Link to proposal or concept note"
+              <Input
+                type="number"
+                placeholder="Enter amount"
+                {...field}
+                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
+      />
+
+      {/* Proposal Available */}
+      <FormField
+        control={form.control}
+        name="proposalAvailable"
+        render={({ field, fieldState }) => {
+          const linkError = fieldState.error?.message;
+          
+          return (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Proposal/Concept Note Available?</FormLabel>
+              <FormControl>
+                <YesNoLinkField
+                  value={field.value}
+                  onChange={field.onChange}
+                  linkPlaceholder="Link to proposal or concept note"
+                  linkError={linkError}
+                />
+              </FormControl>
+            </FormItem>
+          );
+        }}
       />
     </div>
   );
