@@ -77,21 +77,34 @@ export function SectionE({ form }: SectionEProps) {
       <FormField
         control={form.control}
         name="totalCostUSD"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Total Cost (USD) *</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                placeholder="Enter amount"
-                {...field}
-                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
-                value={field.value || ''}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field }) => {
+          const formatNumber = (value: number | string | undefined) => {
+            if (!value && value !== 0) return '';
+            return Number(value).toLocaleString('en-US');
+          };
+
+          const parseNumber = (value: string) => {
+            const cleaned = value.replace(/,/g, '');
+            const parsed = parseFloat(cleaned);
+            return isNaN(parsed) ? '' : parsed;
+          };
+
+          return (
+            <FormItem>
+              <FormLabel>Total Cost (USD) *</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter amount"
+                  value={formatNumber(field.value)}
+                  onChange={(e) => field.onChange(parseNumber(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
 
       {/* Proposal Available */}

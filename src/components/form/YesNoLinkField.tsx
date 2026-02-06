@@ -50,6 +50,15 @@ export function YesNoLinkField({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleLinkBlur();
+      // Blur the input to trigger validation
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
   return (
     <div className={cn('space-y-3', className)}>
       <RadioGroup
@@ -75,6 +84,7 @@ export function YesNoLinkField({
             value={value?.link || ''}
             onChange={(e) => handleLinkChange(e.target.value)}
             onBlur={handleLinkBlur}
+            onKeyDown={handleKeyDown}
             className={cn("mt-2", linkError && "border-destructive")}
           />
           {linkError && (
