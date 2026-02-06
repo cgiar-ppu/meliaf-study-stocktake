@@ -96,23 +96,23 @@ export function StudyForm() {
     });
   };
 
-  // Calculate overall progress - tracks all sections
+  // Calculate overall progress - tracks completed sections (all required fields filled)
   const calculateProgress = () => {
     const values = form.getValues();
     
-    // Define what "started" means for each section (any field filled)
+    // Define completion criteria for each section (ALL listed fields must be filled)
     const sectionChecks = [
-      // Section A - Basic Information
-      () => !!(values.studyId || values.studyTitle || values.leadCenter || values.contactName || values.contactEmail),
-      // Section B - Study Classification
-      () => !!(values.studyType || values.timing || values.analyticalScope || values.geographicScope || values.resultLevel || values.causalityMode || values.methodClass),
-      // Section C - Research Details (only count if visible)
+      // Section A - Basic Information (all required)
+      () => !!(values.studyId && values.studyTitle && values.leadCenter && values.contactName && values.contactEmail),
+      // Section B - Study Classification (all required)
+      () => !!(values.studyType && values.timing && values.analyticalScope && values.geographicScope && values.resultLevel && values.causalityMode && values.methodClass),
+      // Section C - Research Details (conditional - at least key fields filled)
       () => showSectionC ? !!(values.keyResearchQuestions || values.unitOfAnalysis || values.treatmentIntervention) : false,
-      // Section D - Timeline & Status
-      () => !!(values.startDate || values.expectedEndDate || values.dataCollectionStatus || values.analysisStatus),
-      // Section E - Funding & Resources
+      // Section D - Timeline & Status (all required)
+      () => !!(values.startDate && values.expectedEndDate && values.dataCollectionStatus && values.analysisStatus),
+      // Section E - Funding & Resources (optional - any field counts)
       () => !!(values.funded || values.fundingSource || values.totalCostUSD),
-      // Section F - Outputs & Users  
+      // Section F - Outputs & Users (optional - any field counts)
       () => !!(values.manuscriptDeveloped || values.policyBriefDeveloped || values.intendedPrimaryUser?.length),
     ];
     
