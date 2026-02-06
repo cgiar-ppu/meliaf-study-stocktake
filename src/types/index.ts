@@ -233,10 +233,10 @@ export const RESULT_LEVEL_OPTIONS: { value: ResultLevelType; label: string; desc
   },
 ];
 
-export const CAUSALITY_MODE_OPTIONS: { value: CausalityModeType; label: string }[] = [
-  { value: 'c0_descriptive', label: 'C0: Descriptive' },
-  { value: 'c1_contribution', label: 'C1: Contribution' },
-  { value: 'c2_causal', label: 'C2: Causal' },
+export const CAUSALITY_MODE_OPTIONS: { value: CausalityModeType; label: string; description: string }[] = [
+  { value: 'c0_descriptive', label: 'C0', description: 'Descriptive (What happened?)' },
+  { value: 'c1_contribution', label: 'C1', description: 'Contribution (Plausible influence)' },
+  { value: 'c2_causal', label: 'C2', description: 'Causal (Counterfactual attribution)' },
 ];
 
 export const METHOD_CLASS_OPTIONS: { value: MethodClassType; label: string }[] = [
