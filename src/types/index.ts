@@ -207,12 +207,12 @@ export const ANALYTICAL_SCOPE_OPTIONS: { value: AnalyticalScopeType; label: stri
   { value: 'portfolio_system', label: 'Portfolio / System / Network' },
 ];
 
-export const GEOGRAPHIC_SCOPE_OPTIONS: { value: GeographicScopeType; label: string }[] = [
+export const GEOGRAPHIC_SCOPE_OPTIONS: { value: GeographicScopeType; label: string; description?: string }[] = [
   { value: 'global', label: 'Global' },
   { value: 'regional', label: 'Regional' },
   { value: 'national', label: 'National' },
-  { value: 'sub_national', label: 'Sub-national' },
-  { value: 'site_specific', label: 'Site-specific' },
+  { value: 'sub_national', label: 'Sub-national', description: '(national minus 1)' },
+  { value: 'site_specific', label: 'Site-specific', description: '(landscapes/catchments/communities etc)' },
 ];
 
 export const RESULT_LEVEL_OPTIONS: { value: ResultLevelType; label: string }[] = [

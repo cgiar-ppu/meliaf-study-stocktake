@@ -138,14 +138,28 @@ export function SectionB({ form }: SectionBProps) {
             <FormLabel>Geographic Scope *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger>
+                <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select geographic scope" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
+              <SelectContent className="w-[var(--radix-select-trigger-width)]">
                 {GEOGRAPHIC_SCOPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                  <SelectItem 
+                    key={option.value} 
+                    value={option.value}
+                    textValue={option.label}
+                    className={option.description ? "py-3 whitespace-normal" : ""}
+                  >
+                    {option.description ? (
+                      <div className="flex flex-col gap-1 pr-2">
+                        <span className="font-medium">{option.label}</span>
+                        <span className="select-description text-xs text-muted-foreground leading-relaxed whitespace-normal">
+                          {option.description}
+                        </span>
+                      </div>
+                    ) : (
+                      option.label
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
