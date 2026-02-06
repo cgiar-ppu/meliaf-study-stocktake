@@ -42,14 +42,17 @@ export function SectionB({ form }: SectionBProps) {
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger className="text-left">
-                  <SelectValue placeholder="Select study type">
-                    {field.value && STUDY_TYPE_OPTIONS.find(o => o.value === field.value)?.label}
-                  </SelectValue>
+                  <SelectValue placeholder="Select study type" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent className="max-h-80 w-[var(--radix-select-trigger-width)]">
                 {STUDY_TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="py-3 whitespace-normal">
+                  <SelectItem 
+                    key={option.value} 
+                    value={option.value} 
+                    textValue={option.label}
+                    className="py-3 whitespace-normal"
+                  >
                     <div className="flex flex-col gap-1 pr-2">
                       <span className="font-medium">{option.label}</span>
                       <span className="text-xs text-muted-foreground leading-relaxed whitespace-normal">
