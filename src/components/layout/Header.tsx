@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import cgiarLogo from '@/assets/cgiar-logo.png';
 
 const navItems = [
@@ -66,7 +67,7 @@ export function Header() {
           })}
         </nav>
 
-        {/* User Menu & Dev Mode Toggle */}
+        {/* User Menu & Theme Toggle */}
         <div className="flex items-center gap-2">
           {/* Dev Mode Badge */}
           {devModeEnabled && (
@@ -77,6 +78,9 @@ export function Header() {
               DEV MODE
             </button>
           )}
+
+          {/* Theme Toggle */}
+          <ThemeToggle />
 
           {/* User Dropdown */}
           <DropdownMenu>
