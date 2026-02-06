@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Info } from 'lucide-react';
-import cgiarLogo from '@/assets/cgiar-logo.jpg';
+import cgiarLogo from '@/assets/cgiar-logo.png';
 
 export default function SignUp() {
   const navigate = useNavigate();

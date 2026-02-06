@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import cgiarLogo from '@/assets/cgiar-logo.jpg';
+import cgiarLogo from '@/assets/cgiar-logo.png';
 
 const navItems = [
   { to: '/', label: 'My Submissions', icon: FolderOpen },
