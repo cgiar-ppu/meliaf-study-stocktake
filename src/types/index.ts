@@ -201,10 +201,10 @@ export const TIMING_OPTIONS: { value: TimingType; label: string; description: st
 ];
 
 export const ANALYTICAL_SCOPE_OPTIONS: { value: AnalyticalScopeType; label: string }[] = [
-  { value: 'innovation_technology', label: 'Innovation/Technology' },
-  { value: 'project_intervention', label: 'Project/Intervention' },
-  { value: 'program_accelerator', label: 'Program/Accelerator' },
-  { value: 'portfolio_system', label: 'Portfolio/System' },
+  { value: 'innovation_technology', label: 'Innovation / Technology / Policy Option' },
+  { value: 'project_intervention', label: 'Project / Intervention / Bundle / Package' },
+  { value: 'program_accelerator', label: 'Program / Accelerator / Theme / Center / Function' },
+  { value: 'portfolio_system', label: 'Portfolio / System / Network' },
 ];
 
 export const GEOGRAPHIC_SCOPE_OPTIONS: { value: GeographicScopeType; label: string }[] = [
