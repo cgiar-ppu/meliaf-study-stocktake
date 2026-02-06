@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle } from 'lucide-react';
+import cgiarLogo from '@/assets/cgiar-logo.jpg';
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -48,9 +49,7 @@ export default function SignIn() {
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-primary">
-            <span className="text-2xl font-bold text-primary-foreground">M</span>
-          </div>
+          <img src={cgiarLogo} alt="CGIAR" className="mx-auto mb-4 h-16 w-auto" />
           <h1 className="text-2xl font-bold text-foreground">MELIAF Study Stocktake</h1>
           <p className="text-sm text-muted-foreground">CGIAR Research Initiative</p>
         </div>
