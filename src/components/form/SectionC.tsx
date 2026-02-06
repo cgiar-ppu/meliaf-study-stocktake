@@ -55,7 +55,7 @@ export function SectionC({ form }: SectionCProps) {
           <FormItem>
             <FormLabel>Unit of Analysis</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Household, Farm, Individual" {...field} />
+              <Input placeholder="Enter unit of analysis" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -81,21 +81,34 @@ export function SectionC({ form }: SectionCProps) {
       <FormField
         control={form.control}
         name="sampleSize"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Sample Size</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                placeholder="Enter sample size"
-                {...field}
-                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : '')}
-                value={field.value || ''}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field }) => {
+          const formatNumber = (value: number | string | undefined) => {
+            if (!value && value !== 0) return '';
+            return Number(value).toLocaleString('en-US');
+          };
+
+          const parseNumber = (value: string) => {
+            const cleaned = value.replace(/,/g, '');
+            const parsed = parseInt(cleaned, 10);
+            return isNaN(parsed) ? '' : parsed;
+          };
+
+          return (
+            <FormItem>
+              <FormLabel>Sample Size</FormLabel>
+              <FormControl>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Enter sample size"
+                  value={formatNumber(field.value)}
+                  onChange={(e) => field.onChange(parseNumber(e.target.value))}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
 
       {/* Power Calculation */}
@@ -138,9 +151,6 @@ export function SectionC({ form }: SectionCProps) {
                 placeholder="Type method and press Enter..."
               />
             </FormControl>
-            <FormDescription>
-              e.g., Surveys, Interviews, Focus Groups, Administrative Data
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}
