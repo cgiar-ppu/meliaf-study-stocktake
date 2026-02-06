@@ -14,7 +14,7 @@ export const studyFormSchema = z.object({
   leadCenter: z.string().trim().min(1, 'Lead center is required').max(200, 'Lead center must be less than 200 characters'),
   contactName: z.string().trim().min(1, 'Contact name is required').max(100, 'Name must be less than 100 characters'),
   contactEmail: z.string().trim().email('Invalid email address').max(255, 'Email must be less than 255 characters'),
-  otherCenters: z.array(z.string()).default([]),
+  otherCenters: z.array(z.string()).min(1, 'At least one other center is required'),
 
   // Section B - Study Classification (Mandatory)
   studyType: z.enum([

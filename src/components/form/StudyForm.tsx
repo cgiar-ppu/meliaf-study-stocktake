@@ -102,8 +102,8 @@ export function StudyForm() {
     
     // Define completion criteria for each section (ALL listed fields must be filled)
     const sectionChecks = [
-      // Section A - Basic Information (all required)
-      () => !!(values.studyId && values.studyTitle && values.leadCenter && values.contactName && values.contactEmail),
+      // Section A - Basic Information (all required including otherCenters)
+      () => !!(values.studyId && values.studyTitle && values.leadCenter && values.contactName && values.contactEmail && values.otherCenters?.length),
       // Section B - Study Classification (all required)
       () => !!(values.studyType && values.timing && values.analyticalScope && values.geographicScope && values.resultLevel && values.causalityMode && values.methodClass),
       // Section C - Research Details (conditional - at least key fields filled)
