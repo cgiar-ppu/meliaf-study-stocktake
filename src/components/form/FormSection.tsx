@@ -12,6 +12,7 @@ interface FormSectionProps {
   isComplete?: boolean;
   hasErrors?: boolean;
   isConditional?: boolean;
+  isRequired?: boolean;
   sectionLabel?: string;
 }
 
@@ -24,6 +25,7 @@ export function FormSection({
   isComplete = false,
   hasErrors = false,
   isConditional = false,
+  isRequired = false,
   sectionLabel,
 }: FormSectionProps) {
   return (
@@ -43,7 +45,10 @@ export function FormSection({
             )}
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-foreground">{title}</h3>
+                <h3 className="font-semibold text-foreground">
+                  {title}
+                  {isRequired && <span className="ml-0.5 text-destructive">*</span>}
+                </h3>
                 {isConditional && (
                   <Badge variant="outline" className="text-xs">
                     Conditional
