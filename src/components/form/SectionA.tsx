@@ -26,7 +26,7 @@ export function SectionA({ form }: SectionAProps) {
           <FormItem>
             <FormLabel>Study ID *</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., MELIAF-2024-001" {...field} />
+              <Input placeholder="Enter the ID of the study" {...field} />
             </FormControl>
             <FormDescription>Unique identifier for this study</FormDescription>
             <FormMessage />
@@ -39,7 +39,7 @@ export function SectionA({ form }: SectionAProps) {
         control={form.control}
         name="studyTitle"
         render={({ field }) => (
-          <FormItem className="sm:col-span-2">
+          <FormItem>
             <FormLabel>Study Title *</FormLabel>
             <FormControl>
               <Input placeholder="Enter the full title of the study" {...field} />
@@ -49,7 +49,7 @@ export function SectionA({ form }: SectionAProps) {
         )}
       />
 
-      {/* Lead Center / Entity */}
+      {/* Lead Center / Entity - own row at 50% */}
       <FormField
         control={form.control}
         name="leadCenter"
@@ -63,6 +63,9 @@ export function SectionA({ form }: SectionAProps) {
           </FormItem>
         )}
       />
+
+      {/* Empty spacer to keep Lead Center at 50% on its own row */}
+      <div className="hidden sm:block" />
 
       {/* Contact Name */}
       <FormField
@@ -100,7 +103,7 @@ export function SectionA({ form }: SectionAProps) {
         name="otherCenters"
         render={({ field }) => (
           <FormItem className="sm:col-span-2">
-            <FormLabel>Other Centers/Programs/Accelerators Involved</FormLabel>
+            <FormLabel>Other Centers/Programs/Accelerators Involved *</FormLabel>
             <FormControl>
               <TagInput
                 value={field.value || []}
