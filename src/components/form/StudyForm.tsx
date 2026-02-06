@@ -124,6 +124,7 @@ export function StudyForm() {
   };
 
   const { completed, total } = calculateProgress();
+  const isFormComplete = completed === total;
 
   // Form submission
   const onSubmit = async (data: StudyFormData) => {
@@ -276,7 +277,7 @@ export function StudyForm() {
               <Save className="mr-2 h-4 w-4" />
               Save Draft
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting || !isFormComplete}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -289,6 +290,11 @@ export function StudyForm() {
                 </>
               )}
             </Button>
+            {!isFormComplete && (
+              <p className="text-sm text-muted-foreground sm:text-right">
+                Complete all required sections to submit
+              </p>
+            )}
           </div>
         </form>
       </Form>
