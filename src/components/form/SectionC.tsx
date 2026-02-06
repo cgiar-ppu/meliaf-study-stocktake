@@ -179,19 +179,24 @@ export function SectionC({ form }: SectionCProps) {
       <FormField
         control={form.control}
         name="preAnalysisPlan"
-        render={({ field }) => (
-          <FormItem className="sm:col-span-2">
-            <FormLabel>Pre-Analysis Plan Available?</FormLabel>
-            <FormControl>
-              <YesNoLinkField
-                value={field.value}
-                onChange={field.onChange}
-                linkPlaceholder="Link to pre-analysis plan"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field, fieldState }) => {
+          // Extract link error from field state if it exists
+          const linkError = fieldState.error?.message;
+          
+          return (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Pre-Analysis Plan Available?</FormLabel>
+              <FormControl>
+                <YesNoLinkField
+                  value={field.value}
+                  onChange={field.onChange}
+                  linkPlaceholder="Link to pre-analysis plan"
+                  linkError={linkError}
+                />
+              </FormControl>
+            </FormItem>
+          );
+        }}
       />
 
       {/* Number of Data Collection Rounds */}
