@@ -41,7 +41,7 @@ export function SectionB({ form }: SectionBProps) {
             <FormLabel>Study Type *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger className="text-left">
+                <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select study type" />
                 </SelectTrigger>
               </FormControl>
@@ -55,7 +55,7 @@ export function SectionB({ form }: SectionBProps) {
                   >
                     <div className="flex flex-col gap-1 pr-2">
                       <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-muted-foreground leading-relaxed whitespace-normal">
+                      <span className="select-description text-xs text-muted-foreground leading-relaxed whitespace-normal">
                         {option.description}
                       </span>
                     </div>
