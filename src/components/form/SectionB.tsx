@@ -37,7 +37,7 @@ export function SectionB({ form }: SectionBProps) {
         control={form.control}
         name="studyType"
         render={({ field }) => (
-          <FormItem>
+          <FormItem className="sm:col-span-2">
             <FormLabel>Study Type *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
@@ -45,10 +45,15 @@ export function SectionB({ form }: SectionBProps) {
                   <SelectValue placeholder="Select study type" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
+              <SelectContent className="max-h-80">
                 {STUDY_TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                  <SelectItem key={option.value} value={option.value} className="py-3">
+                    <div className="flex flex-col gap-1">
+                      <span className="font-medium">{option.label}</span>
+                      <span className="text-xs text-muted-foreground leading-relaxed">
+                        {option.description}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

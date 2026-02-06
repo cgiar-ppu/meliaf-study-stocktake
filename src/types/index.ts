@@ -78,14 +78,14 @@ export interface StudySubmission {
 export type StudyType = 
   | 'ex_ante_impact'
   | 'foresight_futures'
-  | 'baseline'
-  | 'monitoring'
-  | 'process_evaluation'
-  | 'outcome_evaluation'
-  | 'impact_evaluation'
-  | 'synthesis_review'
-  | 'meta_analysis'
-  | 'other';
+  | 'process_performance'
+  | 'causal_impact'
+  | 'adoption_diffusion'
+  | 'scaling_readiness'
+  | 'scaling_policy_tracing'
+  | 'institutional_policy_change'
+  | 'synthesis_strategic_learning'
+  | 'meliaf_method';
 
 export type TimingType = 't0_ex_ante' | 't1_during' | 't2_endline' | 't3_ex_post';
 
@@ -140,17 +140,57 @@ export type PrimaryUserType =
 export type SubmissionStatus = 'draft' | 'active' | 'archived';
 
 // Form field options for dropdowns
-export const STUDY_TYPE_OPTIONS: { value: StudyType; label: string }[] = [
-  { value: 'ex_ante_impact', label: 'Ex-ante Impact Assessment' },
-  { value: 'foresight_futures', label: 'Foresight & Futures Analysis' },
-  { value: 'baseline', label: 'Baseline Study' },
-  { value: 'monitoring', label: 'Monitoring' },
-  { value: 'process_evaluation', label: 'Process Evaluation' },
-  { value: 'outcome_evaluation', label: 'Outcome Evaluation' },
-  { value: 'impact_evaluation', label: 'Impact Evaluation' },
-  { value: 'synthesis_review', label: 'Synthesis/Systematic Review' },
-  { value: 'meta_analysis', label: 'Meta-Analysis' },
-  { value: 'other', label: 'Other' },
+export const STUDY_TYPE_OPTIONS: { value: StudyType; label: string; description: string }[] = [
+  { 
+    value: 'ex_ante_impact', 
+    label: 'Ex-ante Impact Assessment',
+    description: 'Explores expected results (e.g. benefits and costs) stemming from alternative interventions typically compared against a business as usual scenario.'
+  },
+  { 
+    value: 'foresight_futures', 
+    label: 'Foresight & Futures Analysis',
+    description: 'Explores implications of plausible long-term system futures to inform strategy, priority-setting, and risk-aware decision-making under uncertainty.'
+  },
+  { 
+    value: 'process_performance', 
+    label: 'Process & Performance Evaluation',
+    description: 'Assesses how well an intervention (ranging from single innovations/approaches to more complex programs) is implemented and whether it is delivering results as planned, focusing on effectiveness, efficiency, and quality of delivery.'
+  },
+  { 
+    value: 'causal_impact', 
+    label: 'Causal Impact Evaluation',
+    description: 'Uses counterfactual methods to determine whether observed outcome or impact changes can be attributed to the intervention. Includes studies conducted at earlier or mature stages of the intervention (e.g. pre or post scale up).'
+  },
+  { 
+    value: 'adoption_diffusion', 
+    label: 'Adoption & Diffusion Study',
+    description: 'Examines whether, where, how, and by whom innovations are taken up, used, adapted, or rejected by intended users. This includes studies that measure adoption as well as those that attempt to understand factors explaining those patterns.'
+  },
+  { 
+    value: 'scaling_readiness', 
+    label: 'Scaling Readiness Assessment',
+    description: 'Assesses whether an innovation is sufficiently mature and enabled for scaling, identifying bottlenecks, risks, and priority actions for scale-up.'
+  },
+  { 
+    value: 'scaling_policy_tracing', 
+    label: 'Scaling & Policy Tracing Study',
+    description: 'Tracks how innovations, evidence, or policy advice move through next user/boundary partner institutions and systems to support scaling and long-term impact pathways.'
+  },
+  { 
+    value: 'institutional_policy_change', 
+    label: 'Institutional & Policy Change Study',
+    description: 'Analyzes changes in decisions, rules, behaviors, investments, or norms among end user institutions and policy actors influenced by the intervention.'
+  },
+  { 
+    value: 'synthesis_strategic_learning', 
+    label: 'Synthesis & Strategic Learning Study',
+    description: "Integrates evidence from multiple sources to identify system-level patterns, lessons, and strategic implications across projects, programs, or portfolios. In this case 'learning' is meant to capture learning from M, E, IA and F studies, and not more general learning that is fundamental to everything the CGIAR does. Includes ROI/VfM studies."
+  },
+  { 
+    value: 'meliaf_method', 
+    label: 'MELIAF Method Study',
+    description: 'Development and testing of MELIAF methods (indicators, protocols etc).'
+  },
 ];
 
 export const TIMING_OPTIONS: { value: TimingType; label: string }[] = [
