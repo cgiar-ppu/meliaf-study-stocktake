@@ -23,9 +23,9 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/submit', label: 'Submit Study', icon: FileText },
   { to: '/submissions', label: 'My Submissions', icon: FolderOpen },
+  { to: '/submit', label: 'Submit Study', icon: FileText },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];
 
 export function Header() {
