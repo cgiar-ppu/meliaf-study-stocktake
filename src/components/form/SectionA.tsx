@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { StudyFormData } from '@/lib/formSchema';
 import {
@@ -15,7 +16,7 @@ interface SectionAProps {
   form: UseFormReturn<StudyFormData>;
 }
 
-export function SectionA({ form }: SectionAProps) {
+export const SectionA = memo(function SectionA({ form }: SectionAProps) {
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       {/* Study ID */}
@@ -119,4 +120,4 @@ export function SectionA({ form }: SectionAProps) {
       />
     </div>
   );
-}
+});

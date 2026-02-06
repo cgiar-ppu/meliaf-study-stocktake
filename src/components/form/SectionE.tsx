@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { StudyFormData } from '@/lib/formSchema';
 import {
@@ -22,7 +23,7 @@ interface SectionEProps {
   form: UseFormReturn<StudyFormData>;
 }
 
-export function SectionE({ form }: SectionEProps) {
+export const SectionE = memo(function SectionE({ form }: SectionEProps) {
   const funded = form.watch('funded');
   const showFundingSource = funded === 'yes' || funded === 'partial';
 
@@ -131,4 +132,4 @@ export function SectionE({ form }: SectionEProps) {
       />
     </div>
   );
-}
+});

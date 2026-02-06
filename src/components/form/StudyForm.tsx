@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
@@ -72,21 +72,22 @@ export function StudyForm() {
   const methodClass = form.watch('methodClass');
   const showSectionC = shouldShowResearchDetails(causalityMode, methodClass);
 
-  // Toggle section open/closed
-  const toggleSection = (section: string) => {
+  // Toggle section open/closed - memoized to prevent child re-renders
+  const toggleSection = useCallback((section: string) => {
     setOpenSections((prev) =>
       prev.includes(section)
         ? prev.filter((s) => s !== section)
         : [...prev, section]
     );
-  };
+  }, []);
 
-  // Calculate section completion
-  const getSectionErrors = (sectionFields: string[]) => {
+  // Calculate section errors - memoized
+  const getSectionErrors = useCallback((sectionFields: string[]) => {
     return sectionFields.some((field) => form.formState.errors[field as keyof StudyFormData]);
-  };
+  }, [form.formState.errors]);
 
-  const getSectionComplete = (sectionFields: string[], required: boolean = true) => {
+  // Calculate section completion - memoized
+  const getSectionComplete = useCallback((sectionFields: string[], required: boolean = true) => {
     if (!required) return true;
     const values = form.getValues();
     return sectionFields.every((field) => {
@@ -94,36 +95,36 @@ export function StudyForm() {
       if (Array.isArray(value)) return value.length > 0; // Arrays need at least one item
       return value !== undefined && value !== '';
     });
-  };
+  }, [form]);
 
-  // Calculate overall progress - tracks completed sections (all required fields filled)
-  const calculateProgress = () => {
-    const values = form.getValues();
-    
+  // Watch form values for progress calculation
+  const formValues = form.watch();
+
+  // Calculate overall progress - memoized to prevent recalculation on every render
+  const { completed, total } = useMemo(() => {
     // Define completion criteria for each section (ALL listed fields must be filled)
     const sectionChecks = [
       // Section A - Basic Information (all required including otherCenters)
-      () => !!(values.studyId && values.studyTitle && values.leadCenter && values.contactName && values.contactEmail && values.otherCenters?.length),
+      () => !!(formValues.studyId && formValues.studyTitle && formValues.leadCenter && formValues.contactName && formValues.contactEmail && formValues.otherCenters?.length),
       // Section B - Study Classification (all required including primaryIndicator)
-      () => !!(values.studyType && values.timing && values.analyticalScope && values.geographicScope && values.resultLevel && values.causalityMode && values.methodClass && values.primaryIndicator),
+      () => !!(formValues.studyType && formValues.timing && formValues.analyticalScope && formValues.geographicScope && formValues.resultLevel && formValues.causalityMode && formValues.methodClass && formValues.primaryIndicator),
       // Section C - Research Details (conditional - at least key fields filled)
-      () => showSectionC ? !!(values.keyResearchQuestions || values.unitOfAnalysis || values.treatmentIntervention) : false,
+      () => showSectionC ? !!(formValues.keyResearchQuestions || formValues.unitOfAnalysis || formValues.treatmentIntervention) : false,
       // Section D - Timeline & Status (all required)
-      () => !!(values.startDate && values.expectedEndDate && values.dataCollectionStatus && values.analysisStatus),
+      () => !!(formValues.startDate && formValues.expectedEndDate && formValues.dataCollectionStatus && formValues.analysisStatus),
       // Section E - Funding & Resources (all required - funded, totalCostUSD, proposalAvailable)
-      () => !!(values.funded && values.totalCostUSD && values.proposalAvailable?.answer),
+      () => !!(formValues.funded && formValues.totalCostUSD && formValues.proposalAvailable?.answer),
       // Section F - Outputs & Users (all required)
-      () => !!(values.manuscriptDeveloped?.answer && values.policyBriefDeveloped?.answer && values.relatedToPastStudy?.answer && values.intendedPrimaryUser?.length && values.commissioningSource),
+      () => !!(formValues.manuscriptDeveloped?.answer && formValues.policyBriefDeveloped?.answer && formValues.relatedToPastStudy?.answer && formValues.intendedPrimaryUser?.length && formValues.commissioningSource),
     ];
     
     // Filter out Section C if not visible
     const activeSections = showSectionC ? sectionChecks : sectionChecks.filter((_, i) => i !== 2);
-    const completed = activeSections.filter(check => check()).length;
+    const completedCount = activeSections.filter(check => check()).length;
     
-    return { completed, total: activeSections.length };
-  };
+    return { completed: completedCount, total: activeSections.length };
+  }, [formValues, showSectionC]);
 
-  const { completed, total } = calculateProgress();
   const isFormComplete = completed === total;
 
   // Form submission
