@@ -91,7 +91,7 @@ export function StudyForm() {
     const values = form.getValues();
     return sectionFields.every((field) => {
       const value = values[field as keyof StudyFormData];
-      if (Array.isArray(value)) return true; // Arrays are optional
+      if (Array.isArray(value)) return value.length > 0; // Arrays need at least one item
       return value !== undefined && value !== '';
     });
   };
@@ -189,8 +189,8 @@ export function StudyForm() {
             isOpen={openSections.includes('a')}
             onToggle={() => toggleSection('a')}
             isRequired
-            isComplete={getSectionComplete(['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail'])}
-            hasErrors={getSectionErrors(['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail'])}
+            isComplete={getSectionComplete(['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail', 'otherCenters'])}
+            hasErrors={getSectionErrors(['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail', 'otherCenters'])}
           >
             <SectionA form={form} />
           </FormSection>
