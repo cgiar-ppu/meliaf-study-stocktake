@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import * as React from 'react';
 import type { User, AuthState } from '@/types';
+
+const { createContext, useContext, useState, useCallback, useEffect } = React;
 
 // Dev mode flag - easily toggle to bypass auth during development
 const DEV_MODE = true;
@@ -58,11 +60,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // TODO: Replace with AWS Amplify Auth.signIn()
-      // Example:
-      // const cognitoUser = await Auth.signIn(email, password);
-      // const user = mapCognitoUser(cognitoUser);
-      
-      // Mock implementation
       await new Promise((resolve) => setTimeout(resolve, 800));
       
       const user: User = {
@@ -89,14 +86,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // TODO: Replace with AWS Amplify Auth.signUp()
-      // Example:
-      // await Auth.signUp({
-      //   username: email,
-      //   password,
-      //   attributes: { email, name }
-      // });
-      
-      // Mock implementation - in real app, user would need to confirm email
       await new Promise((resolve) => setTimeout(resolve, 800));
       
       const user: User = {
@@ -123,8 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       // TODO: Replace with AWS Amplify Auth.signOut()
-      // await Auth.signOut();
-      
       await new Promise((resolve) => setTimeout(resolve, 300));
       
       setAuthState({
@@ -141,10 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Password reset - placeholder for AWS Cognito integration
   const resetPassword = useCallback(async (_email: string) => {
     // TODO: Replace with AWS Amplify Auth.forgotPassword()
-    // await Auth.forgotPassword(email);
-    
     await new Promise((resolve) => setTimeout(resolve, 500));
-    // In real app, this would trigger an email
   }, []);
 
   // Check session on mount - placeholder for AWS Cognito
@@ -155,11 +139,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAuthState((prev) => ({ ...prev, isLoading: true }));
       
       try {
-        // TODO: Replace with AWS Amplify Auth.currentAuthenticatedUser()
-        // const cognitoUser = await Auth.currentAuthenticatedUser();
-        // const user = mapCognitoUser(cognitoUser);
-        
-        // Mock: Check for stored session
         const storedUser = localStorage.getItem('meliaf_user');
         if (storedUser) {
           setAuthState({
