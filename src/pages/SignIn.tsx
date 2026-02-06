@@ -51,7 +51,6 @@ export default function SignIn() {
         <div className="mb-8 text-center">
           <img src={cgiarLogo} alt="CGIAR" className="mx-auto mb-4 h-16 w-auto" />
           <h1 className="text-2xl font-bold text-foreground">MELIAF Study Stocktake</h1>
-          <p className="text-sm text-muted-foreground">CGIAR Research Initiative</p>
         </div>
 
         <Card className="border-border shadow-lg">
