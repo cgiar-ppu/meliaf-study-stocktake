@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import cgiarLogo from '@/assets/cgiar-logo.jpg';
 
 const navItems = [
   { to: '/', label: 'My Submissions', icon: FolderOpen },
@@ -38,9 +39,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         {/* Logo and Title */}
         <Link to="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-            <span className="text-lg font-bold text-primary-foreground">M</span>
-          </div>
+          <img src={cgiarLogo} alt="CGIAR" className="h-10 w-auto" />
           <div className="hidden sm:block">
             <h1 className="text-lg font-semibold text-foreground">MELIAF Study Stocktake</h1>
             <p className="text-xs text-muted-foreground">CGIAR Research Initiative</p>
