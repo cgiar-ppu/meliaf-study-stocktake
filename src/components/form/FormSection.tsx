@@ -62,7 +62,7 @@ export function FormSection({
           </div>
           <div className="flex items-center gap-2">
             {isComplete && !hasErrors && (
-              <span className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+              <span className="flex items-center gap-1 rounded-full bg-success/10 px-2.5 py-1 text-sm font-medium text-success">
                 ✓ Complete
               </span>
             )}
