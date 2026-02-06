@@ -41,8 +41,10 @@ export function SectionB({ form }: SectionBProps) {
             <FormLabel>Study Type *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select study type" />
+                <SelectTrigger className="text-left">
+                  <SelectValue placeholder="Select study type">
+                    {field.value && STUDY_TYPE_OPTIONS.find(o => o.value === field.value)?.label}
+                  </SelectValue>
                 </SelectTrigger>
               </FormControl>
               <SelectContent className="max-h-80 w-[var(--radix-select-trigger-width)]">
