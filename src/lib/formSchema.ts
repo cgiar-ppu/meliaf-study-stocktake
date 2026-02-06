@@ -107,10 +107,10 @@ export const studyFormSchema = z.object({
   totalCostUSD: z.number({ required_error: 'Total cost is required' }).positive('Total cost must be positive'),
   proposalAvailable: yesNoWithRequiredLinkSchema,
 
-  // Section F - Outputs & Users
-  manuscriptDeveloped: yesNoWithLinkSchema.optional(),
-  policyBriefDeveloped: yesNoWithLinkSchema.optional(),
-  relatedToPastStudy: yesNoWithLinkSchema.optional(),
+  // Section F - Outputs & Users (Mandatory)
+  manuscriptDeveloped: yesNoWithRequiredLinkSchema,
+  policyBriefDeveloped: yesNoWithRequiredLinkSchema,
+  relatedToPastStudy: yesNoWithRequiredLinkSchema,
   intendedPrimaryUser: z.array(z.enum([
     'iaes',
     'program',
@@ -120,8 +120,8 @@ export const studyFormSchema = z.object({
     'policy_makers',
     'researchers',
     'other',
-  ])).default([]),
-  commissioningSource: z.string().trim().max(200, 'Commissioning source must be less than 200 characters').optional(),
+  ])).min(1, 'At least one primary user is required'),
+  commissioningSource: z.string().trim().min(1, 'Commissioning source is required').max(200, 'Commissioning source must be less than 200 characters'),
 }).refine((data) => {
   // Validate end date is after start date
   if (data.startDate && data.expectedEndDate) {

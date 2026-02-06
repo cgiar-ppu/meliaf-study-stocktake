@@ -24,57 +24,69 @@ export function SectionF({ form }: SectionFProps) {
       <FormField
         control={form.control}
         name="manuscriptDeveloped"
-        render={({ field }) => (
-          <FormItem className="sm:col-span-2">
-            <FormLabel>Manuscript/Report Developed?</FormLabel>
-            <FormControl>
-              <YesNoLinkField
-                value={field.value}
-                onChange={field.onChange}
-                linkPlaceholder="Link to manuscript or report"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field, fieldState }) => {
+          const linkError = fieldState.error?.message;
+          
+          return (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Manuscript/Report Developed? *</FormLabel>
+              <FormControl>
+                <YesNoLinkField
+                  value={field.value}
+                  onChange={field.onChange}
+                  linkPlaceholder="Link to manuscript or report"
+                  linkError={linkError}
+                />
+              </FormControl>
+            </FormItem>
+          );
+        }}
       />
 
       {/* Policy Brief Developed */}
       <FormField
         control={form.control}
         name="policyBriefDeveloped"
-        render={({ field }) => (
-          <FormItem className="sm:col-span-2">
-            <FormLabel>Policy Brief/Comms Product Developed?</FormLabel>
-            <FormControl>
-              <YesNoLinkField
-                value={field.value}
-                onChange={field.onChange}
-                linkPlaceholder="Link to policy brief or communications product"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field, fieldState }) => {
+          const linkError = fieldState.error?.message;
+          
+          return (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Policy Brief/Comms Product Developed? *</FormLabel>
+              <FormControl>
+                <YesNoLinkField
+                  value={field.value}
+                  onChange={field.onChange}
+                  linkPlaceholder="Link to policy brief or communications product"
+                  linkError={linkError}
+                />
+              </FormControl>
+            </FormItem>
+          );
+        }}
       />
 
       {/* Related to Past Study */}
       <FormField
         control={form.control}
         name="relatedToPastStudy"
-        render={({ field }) => (
-          <FormItem className="sm:col-span-2">
-            <FormLabel>Related to Past MELIAF Study?</FormLabel>
-            <FormControl>
-              <YesNoLinkField
-                value={field.value}
-                onChange={field.onChange}
-                linkPlaceholder="Link to related study or study ID"
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        render={({ field, fieldState }) => {
+          const linkError = fieldState.error?.message;
+          
+          return (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Related to Past MELIAF Study? *</FormLabel>
+              <FormControl>
+                <YesNoLinkField
+                  value={field.value}
+                  onChange={field.onChange}
+                  linkPlaceholder="Link to related study or study ID"
+                  linkError={linkError}
+                />
+              </FormControl>
+            </FormItem>
+          );
+        }}
       />
 
       {/* Intended Primary User */}
@@ -83,7 +95,7 @@ export function SectionF({ form }: SectionFProps) {
         name="intendedPrimaryUser"
         render={() => (
           <FormItem className="sm:col-span-2">
-            <FormLabel>Intended Primary User(s)</FormLabel>
+            <FormLabel>Intended Primary User(s) *</FormLabel>
             <FormDescription>
               Select all that apply
             </FormDescription>
@@ -127,7 +139,7 @@ export function SectionF({ form }: SectionFProps) {
         name="commissioningSource"
         render={({ field }) => (
           <FormItem className="sm:col-span-2">
-            <FormLabel>Commissioning Source</FormLabel>
+            <FormLabel>Commissioning Source *</FormLabel>
             <FormControl>
               <Input placeholder="Who commissioned this study?" {...field} />
             </FormControl>

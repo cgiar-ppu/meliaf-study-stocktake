@@ -112,8 +112,8 @@ export function StudyForm() {
       () => !!(values.startDate && values.expectedEndDate && values.dataCollectionStatus && values.analysisStatus),
       // Section E - Funding & Resources (all required - funded, totalCostUSD, proposalAvailable)
       () => !!(values.funded && values.totalCostUSD && values.proposalAvailable?.answer),
-      // Section F - Outputs & Users (optional - any field counts)
-      () => !!(values.manuscriptDeveloped || values.policyBriefDeveloped || values.intendedPrimaryUser?.length),
+      // Section F - Outputs & Users (all required)
+      () => !!(values.manuscriptDeveloped?.answer && values.policyBriefDeveloped?.answer && values.relatedToPastStudy?.answer && values.intendedPrimaryUser?.length && values.commissioningSource),
     ];
     
     // Filter out Section C if not visible
@@ -258,6 +258,9 @@ export function StudyForm() {
             sectionLabel="F"
             isOpen={openSections.includes('f')}
             onToggle={() => toggleSection('f')}
+            isRequired
+            isComplete={getSectionComplete(['manuscriptDeveloped', 'policyBriefDeveloped', 'relatedToPastStudy', 'intendedPrimaryUser', 'commissioningSource'])}
+            hasErrors={getSectionErrors(['manuscriptDeveloped', 'policyBriefDeveloped', 'relatedToPastStudy', 'intendedPrimaryUser', 'commissioningSource'])}
           >
             <SectionF form={form} />
           </FormSection>
