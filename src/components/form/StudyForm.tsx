@@ -110,8 +110,8 @@ export function StudyForm() {
       () => showSectionC ? !!(values.keyResearchQuestions || values.unitOfAnalysis || values.treatmentIntervention) : false,
       // Section D - Timeline & Status (all required)
       () => !!(values.startDate && values.expectedEndDate && values.dataCollectionStatus && values.analysisStatus),
-      // Section E - Funding & Resources (optional - any field counts)
-      () => !!(values.funded || values.fundingSource || values.totalCostUSD),
+      // Section E - Funding & Resources (all required - funded, totalCostUSD, proposalAvailable)
+      () => !!(values.funded && values.totalCostUSD && values.proposalAvailable?.answer),
       // Section F - Outputs & Users (optional - any field counts)
       () => !!(values.manuscriptDeveloped || values.policyBriefDeveloped || values.intendedPrimaryUser?.length),
     ];
@@ -244,6 +244,9 @@ export function StudyForm() {
             sectionLabel="E"
             isOpen={openSections.includes('e')}
             onToggle={() => toggleSection('e')}
+            isRequired
+            isComplete={getSectionComplete(['funded', 'totalCostUSD'])}
+            hasErrors={getSectionErrors(['funded', 'fundingSource', 'totalCostUSD', 'proposalAvailable'])}
           >
             <SectionE form={form} />
           </FormSection>

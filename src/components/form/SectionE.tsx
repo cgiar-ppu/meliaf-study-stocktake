@@ -34,7 +34,7 @@ export function SectionE({ form }: SectionEProps) {
         name="funded"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Funded?</FormLabel>
+            <FormLabel>Funded? *</FormLabel>
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
@@ -61,7 +61,7 @@ export function SectionE({ form }: SectionEProps) {
           name="fundingSource"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Funding Source</FormLabel>
+              <FormLabel>Funding Source *</FormLabel>
               <FormControl>
                 <Input placeholder="Enter funding source" {...field} />
               </FormControl>
@@ -79,7 +79,7 @@ export function SectionE({ form }: SectionEProps) {
         name="totalCostUSD"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Total Cost (USD)</FormLabel>
+            <FormLabel>Total Cost (USD) *</FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -103,7 +103,7 @@ export function SectionE({ form }: SectionEProps) {
           
           return (
             <FormItem className="sm:col-span-2">
-              <FormLabel>Proposal/Concept Note Available?</FormLabel>
+              <FormLabel>Proposal/Concept Note Available? *</FormLabel>
               <FormControl>
                 <YesNoLinkField
                   value={field.value}
