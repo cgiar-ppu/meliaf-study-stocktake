@@ -62,10 +62,12 @@ export function FormSection({
           </div>
           <div className="flex items-center gap-2">
             {isComplete && !hasErrors && (
-              <span className="text-xs text-success">Complete</span>
+              <span className="flex items-center gap-1 rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+                ✓ Complete
+              </span>
             )}
             {hasErrors && (
-              <span className="text-xs text-destructive">Has errors</span>
+              <span className="text-xs font-medium text-destructive">Has errors</span>
             )}
             <ChevronDown className={cn(
               'h-5 w-5 text-muted-foreground transition-transform',
