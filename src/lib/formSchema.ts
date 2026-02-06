@@ -105,7 +105,7 @@ export const studyFormSchema = z.object({
   funded: z.enum(['yes', 'no', 'partial']).optional(),
   fundingSource: z.string().trim().max(200, 'Funding source must be less than 200 characters').optional(),
   totalCostUSD: z.number().positive().optional().or(z.literal('')),
-  proposalAvailable: yesNoWithLinkSchema.optional(),
+  proposalAvailable: yesNoWithRequiredLinkSchema.optional(),
 
   // Section F - Outputs & Users
   manuscriptDeveloped: yesNoWithLinkSchema.optional(),
