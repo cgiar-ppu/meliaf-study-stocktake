@@ -55,7 +55,7 @@ export function SectionE({ form }: SectionEProps) {
       />
 
       {/* Funding Source - conditional, same row as Funded */}
-      {showFundingSource && (
+      {showFundingSource ? (
         <FormField
           control={form.control}
           name="fundingSource"
@@ -69,9 +69,11 @@ export function SectionE({ form }: SectionEProps) {
             </FormItem>
           )}
         />
+      ) : (
+        <div className="hidden sm:block" />
       )}
 
-      {/* Total Cost USD - always visible */}
+      {/* Total Cost USD - always visible, always starts new row */}
       <FormField
         control={form.control}
         name="totalCostUSD"
