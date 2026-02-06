@@ -1,0 +1,120 @@
+import { UseFormReturn } from 'react-hook-form';
+import { StudyFormData } from '@/lib/formSchema';
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { YesNoLinkField } from './YesNoLinkField';
+import { FUNDED_OPTIONS } from '@/types';
+
+interface SectionEProps {
+  form: UseFormReturn<StudyFormData>;
+}
+
+export function SectionE({ form }: SectionEProps) {
+  const funded = form.watch('funded');
+  const showFundingDetails = funded === 'yes' || funded === 'partial';
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-2">
+      {/* Funded */}
+      <FormField
+        control={form.control}
+        name="funded"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Funded?</FormLabel>
+            <Select onValueChange={field.onChange} value={field.value}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select funding status" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {FUNDED_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* Placeholder for grid alignment */}
+      <div className="hidden sm:block" />
+
+      {/* Funding Source - conditional */}
+      {showFundingDetails && (
+        <FormField
+          control={form.control}
+          name="fundingSource"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Funding Source</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Gates Foundation, USAID" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {/* Total Cost USD - conditional */}
+      {showFundingDetails && (
+        <FormField
+          control={form.control}
+          name="totalCostUSD"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Total Cost (USD)</FormLabel>
+              <FormControl>
+                <Input
+                  type="number"
+                  placeholder="Enter amount"
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : '')}
+                  value={field.value || ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {/* Proposal Available */}
+      <FormField
+        control={form.control}
+        name="proposalAvailable"
+        render={({ field }) => (
+          <FormItem className="sm:col-span-2">
+            <FormLabel>Proposal/Concept Note Available?</FormLabel>
+            <FormControl>
+              <YesNoLinkField
+                value={field.value}
+                onChange={field.onChange}
+                linkPlaceholder="Link to proposal or concept note"
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
