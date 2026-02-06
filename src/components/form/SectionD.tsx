@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
@@ -30,7 +31,7 @@ interface SectionDProps {
   form: UseFormReturn<StudyFormData>;
 }
 
-export function SectionD({ form }: SectionDProps) {
+export const SectionD = memo(function SectionD({ form }: SectionDProps) {
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       {/* Start Date */}
@@ -172,4 +173,4 @@ export function SectionD({ form }: SectionDProps) {
       />
     </div>
   );
-}
+});
