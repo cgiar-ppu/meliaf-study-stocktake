@@ -6,6 +6,33 @@ const yesNoWithLinkSchema = z.object({
   link: z.string().url().optional().or(z.literal('')),
 });
 
+// Schema for Yes/No where link is required when answer is 'yes'
+const yesNoWithRequiredLinkSchema = z.object({
+  answer: z.enum(['yes', 'no']),
+  link: z.string().optional(),
+}).refine((data) => {
+  if (data.answer === 'yes') {
+    return data.link && data.link.trim().length > 0;
+  }
+  return true;
+}, {
+  message: 'Link is required when answer is Yes',
+  path: ['link'],
+}).refine((data) => {
+  if (data.answer === 'yes' && data.link && data.link.trim().length > 0) {
+    try {
+      new URL(data.link);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: 'Please enter a valid URL',
+  path: ['link'],
+});
+
 // Form validation schema
 export const studyFormSchema = z.object({
   // Section A - Basic Information (Mandatory)
@@ -65,7 +92,7 @@ export const studyFormSchema = z.object({
   powerCalculation: z.enum(['yes', 'no', 'na']).optional(),
   dataCollectionMethods: z.array(z.string()).default([]),
   studyIndicators: z.string().trim().max(2000, 'Indicators must be less than 2000 characters').optional(),
-  preAnalysisPlan: yesNoWithLinkSchema.optional(),
+  preAnalysisPlan: yesNoWithRequiredLinkSchema.optional(),
   dataCollectionRounds: z.number().int().positive().optional().or(z.literal('')),
 
   // Section D - Timeline & Status (Mandatory)
