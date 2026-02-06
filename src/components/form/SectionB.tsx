@@ -45,12 +45,12 @@ export function SectionB({ form }: SectionBProps) {
                   <SelectValue placeholder="Select study type" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="max-h-80">
+              <SelectContent className="max-h-80 w-[var(--radix-select-trigger-width)]">
                 {STUDY_TYPE_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value} className="py-3">
-                    <div className="flex flex-col gap-1">
+                  <SelectItem key={option.value} value={option.value} className="py-3 whitespace-normal">
+                    <div className="flex flex-col gap-1 pr-2">
                       <span className="font-medium">{option.label}</span>
-                      <span className="text-xs text-muted-foreground leading-relaxed">
+                      <span className="text-xs text-muted-foreground leading-relaxed whitespace-normal">
                         {option.description}
                       </span>
                     </div>
