@@ -104,8 +104,8 @@ export function StudyForm() {
     const sectionChecks = [
       // Section A - Basic Information (all required including otherCenters)
       () => !!(values.studyId && values.studyTitle && values.leadCenter && values.contactName && values.contactEmail && values.otherCenters?.length),
-      // Section B - Study Classification (all required)
-      () => !!(values.studyType && values.timing && values.analyticalScope && values.geographicScope && values.resultLevel && values.causalityMode && values.methodClass),
+      // Section B - Study Classification (all required including primaryIndicator)
+      () => !!(values.studyType && values.timing && values.analyticalScope && values.geographicScope && values.resultLevel && values.causalityMode && values.methodClass && values.primaryIndicator),
       // Section C - Research Details (conditional - at least key fields filled)
       () => showSectionC ? !!(values.keyResearchQuestions || values.unitOfAnalysis || values.treatmentIntervention) : false,
       // Section D - Timeline & Status (all required)
@@ -203,8 +203,8 @@ export function StudyForm() {
             isOpen={openSections.includes('b')}
             onToggle={() => toggleSection('b')}
             isRequired
-            isComplete={getSectionComplete(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass'])}
-            hasErrors={getSectionErrors(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass'])}
+            isComplete={getSectionComplete(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'])}
+            hasErrors={getSectionErrors(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'])}
           >
             <SectionB form={form} />
           </FormSection>

@@ -273,7 +273,7 @@ export function SectionB({ form }: SectionBProps) {
         name="primaryIndicator"
         render={({ field }) => (
           <FormItem className="sm:col-span-2">
-            <FormLabel>Primary Results Framework Indicator</FormLabel>
+            <FormLabel>Primary Results Framework Indicator *</FormLabel>
             <FormControl>
               <Input placeholder="Enter primary indicator" {...field} />
             </FormControl>
