@@ -13,6 +13,7 @@ interface YesNoLinkFieldProps {
   onChange: (value: YesNoWithLink) => void;
   linkPlaceholder?: string;
   className?: string;
+  linkError?: string;
 }
 
 export function YesNoLinkField({
@@ -20,6 +21,7 @@ export function YesNoLinkField({
   onChange,
   linkPlaceholder = 'Enter link',
   className,
+  linkError,
 }: YesNoLinkFieldProps) {
   const handleAnswerChange = (answer: 'yes' | 'no') => {
     onChange({
@@ -53,13 +55,18 @@ export function YesNoLinkField({
       </RadioGroup>
       
       {value?.answer === 'yes' && (
-        <Input
-          type="url"
-          placeholder={linkPlaceholder}
-          value={value?.link || ''}
-          onChange={(e) => handleLinkChange(e.target.value)}
-          className="mt-2"
-        />
+        <div className="space-y-1">
+          <Input
+            type="url"
+            placeholder={linkPlaceholder}
+            value={value?.link || ''}
+            onChange={(e) => handleLinkChange(e.target.value)}
+            className={cn("mt-2", linkError && "border-destructive")}
+          />
+          {linkError && (
+            <p className="text-sm font-medium text-destructive">{linkError}</p>
+          )}
+        </div>
       )}
     </div>
   );
