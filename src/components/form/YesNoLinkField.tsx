@@ -37,6 +37,19 @@ export function YesNoLinkField({
     });
   };
 
+  const handleLinkBlur = () => {
+    if (value?.link && value.link.trim()) {
+      let link = value.link.trim();
+      // Auto-prepend https:// if no protocol is present
+      if (link && !link.match(/^https?:\/\//i)) {
+        onChange({
+          answer: value?.answer || 'yes',
+          link: `https://${link}`,
+        });
+      }
+    }
+  };
+
   return (
     <div className={cn('space-y-3', className)}>
       <RadioGroup
@@ -61,6 +74,7 @@ export function YesNoLinkField({
             placeholder={linkPlaceholder}
             value={value?.link || ''}
             onChange={(e) => handleLinkChange(e.target.value)}
+            onBlur={handleLinkBlur}
             className={cn("mt-2", linkError && "border-destructive")}
           />
           {linkError && (
