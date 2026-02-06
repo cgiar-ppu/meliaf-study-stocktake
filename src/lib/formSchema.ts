@@ -55,7 +55,7 @@ export const studyFormSchema = z.object({
     'evidence_synthesis',
     'participatory',
   ], { required_error: 'Method class is required' }),
-  primaryIndicator: z.string().trim().max(500, 'Indicator must be less than 500 characters').optional(),
+  primaryIndicator: z.string().trim().min(1, 'Primary indicator is required').max(500, 'Indicator must be less than 500 characters'),
 
   // Section C - Research Details (Conditional)
   keyResearchQuestions: z.string().trim().max(2000, 'Research questions must be less than 2000 characters').optional(),
