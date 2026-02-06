@@ -96,22 +96,31 @@ export function StudyForm() {
     });
   };
 
-  // Calculate overall progress
+  // Calculate overall progress - tracks all sections
   const calculateProgress = () => {
-    const sections = [
-      { fields: ['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail'], required: true },
-      { fields: ['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass'], required: true },
-      { fields: ['startDate', 'expectedEndDate', 'dataCollectionStatus', 'analysisStatus'], required: true },
+    const values = form.getValues();
+    
+    // Define what "started" means for each section (any field filled)
+    const sectionChecks = [
+      // Section A - Basic Information
+      () => !!(values.studyId || values.studyTitle || values.leadCenter || values.contactName || values.contactEmail),
+      // Section B - Study Classification
+      () => !!(values.studyType || values.timing || values.analyticalScope || values.geographicScope || values.resultLevel || values.causalityMode || values.methodClass),
+      // Section C - Research Details (only count if visible)
+      () => showSectionC ? !!(values.keyResearchQuestions || values.unitOfAnalysis || values.treatmentIntervention) : false,
+      // Section D - Timeline & Status
+      () => !!(values.startDate || values.expectedEndDate || values.dataCollectionStatus || values.analysisStatus),
+      // Section E - Funding & Resources
+      () => !!(values.funded || values.fundingSource || values.totalCostUSD),
+      // Section F - Outputs & Users  
+      () => !!(values.manuscriptDeveloped || values.policyBriefDeveloped || values.intendedPrimaryUser?.length),
     ];
     
-    let completed = 0;
-    sections.forEach((section) => {
-      if (getSectionComplete(section.fields, section.required)) {
-        completed++;
-      }
-    });
+    // Filter out Section C if not visible
+    const activeSections = showSectionC ? sectionChecks : sectionChecks.filter((_, i) => i !== 2);
+    const completed = activeSections.filter(check => check()).length;
     
-    return { completed, total: sections.length };
+    return { completed, total: activeSections.length };
   };
 
   const { completed, total } = calculateProgress();
@@ -179,6 +188,7 @@ export function StudyForm() {
             sectionLabel="A"
             isOpen={openSections.includes('a')}
             onToggle={() => toggleSection('a')}
+            isRequired
             isComplete={getSectionComplete(['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail'])}
             hasErrors={getSectionErrors(['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail'])}
           >
@@ -192,6 +202,7 @@ export function StudyForm() {
             sectionLabel="B"
             isOpen={openSections.includes('b')}
             onToggle={() => toggleSection('b')}
+            isRequired
             isComplete={getSectionComplete(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass'])}
             hasErrors={getSectionErrors(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass'])}
           >
@@ -219,6 +230,7 @@ export function StudyForm() {
             sectionLabel="D"
             isOpen={openSections.includes('d')}
             onToggle={() => toggleSection('d')}
+            isRequired
             isComplete={getSectionComplete(['startDate', 'expectedEndDate', 'dataCollectionStatus', 'analysisStatus'])}
             hasErrors={getSectionErrors(['startDate', 'expectedEndDate', 'dataCollectionStatus', 'analysisStatus'])}
           >
