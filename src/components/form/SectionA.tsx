@@ -28,7 +28,6 @@ export function SectionA({ form }: SectionAProps) {
             <FormControl>
               <Input placeholder="Enter the ID of the study" {...field} />
             </FormControl>
-            <FormDescription>Unique identifier for this study</FormDescription>
             <FormMessage />
           </FormItem>
         )}
@@ -112,7 +111,7 @@ export function SectionA({ form }: SectionAProps) {
               />
             </FormControl>
             <FormDescription>
-              Add other CGIAR centers or programs involved in this study
+              Add other CGIAR centers or programs involved in this study. Type and press Enter to add.
             </FormDescription>
             <FormMessage />
           </FormItem>
