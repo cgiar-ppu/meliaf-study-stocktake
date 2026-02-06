@@ -215,10 +215,22 @@ export const GEOGRAPHIC_SCOPE_OPTIONS: { value: GeographicScopeType; label: stri
   { value: 'site_specific', label: 'Site-specific', description: '(landscapes/catchments/communities etc)' },
 ];
 
-export const RESULT_LEVEL_OPTIONS: { value: ResultLevelType; label: string }[] = [
-  { value: 'output', label: 'Output' },
-  { value: 'outcome', label: 'Outcome' },
-  { value: 'impact', label: 'Impact' },
+export const RESULT_LEVEL_OPTIONS: { value: ResultLevelType; label: string; description: string }[] = [
+  { 
+    value: 'output', 
+    label: 'Output',
+    description: 'Knowledge, technical or institutional advancement produced by CGIAR research, engagement and/or capacity development activities'
+  },
+  { 
+    value: 'outcome', 
+    label: 'Outcome',
+    description: 'A change in knowledge, skills, attitudes, or relationships, manifested as a change in behaviour, to which research outputs and related activities have contributed. CGIAR categorizes outcomes as related to innovation use, policy changes, or others.'
+  },
+  { 
+    value: 'impact', 
+    label: 'Impact',
+    description: 'A durable change in the condition of people and their environment brought about by a chain of events or change in how a system functions, to which research, innovations, and related activities have contributed.'
+  },
 ];
 
 export const CAUSALITY_MODE_OPTIONS: { value: CausalityModeType; label: string }[] = [
