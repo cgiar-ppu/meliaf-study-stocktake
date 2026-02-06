@@ -49,11 +49,11 @@ export const studyFormSchema = z.object({
     'qualitative',
     'quantitative',
     'mixed',
-    'experimental',
-    'quasi_experimental',
-    'modeling',
-    'simulation',
-    'other',
+    'experimental_quasi',
+    'modeling_simulation',
+    'observational',
+    'evidence_synthesis',
+    'participatory',
   ], { required_error: 'Method class is required' }),
   primaryIndicator: z.string().trim().max(500, 'Indicator must be less than 500 characters').optional(),
 
@@ -130,6 +130,6 @@ export const defaultFormValues: Partial<StudyFormData> = {
 // Helper to check if Section C should be visible
 export function shouldShowResearchDetails(causalityMode?: string, methodClass?: string): boolean {
   const isCausal = causalityMode === 'c2_causal';
-  const isQuantitative = methodClass === 'quantitative' || methodClass === 'experimental' || methodClass === 'quasi_experimental';
+  const isQuantitative = methodClass === 'quantitative' || methodClass === 'experimental_quasi';
   return isCausal || isQuantitative;
 }

@@ -110,11 +110,11 @@ export type MethodClassType =
   | 'qualitative'
   | 'quantitative'
   | 'mixed'
-  | 'experimental'
-  | 'quasi_experimental'
-  | 'modeling'
-  | 'simulation'
-  | 'other';
+  | 'experimental_quasi'
+  | 'modeling_simulation'
+  | 'observational'
+  | 'evidence_synthesis'
+  | 'participatory';
 
 export type StatusType = 'planned' | 'ongoing' | 'complete';
 
@@ -242,12 +242,12 @@ export const CAUSALITY_MODE_OPTIONS: { value: CausalityModeType; label: string; 
 export const METHOD_CLASS_OPTIONS: { value: MethodClassType; label: string }[] = [
   { value: 'qualitative', label: 'Qualitative' },
   { value: 'quantitative', label: 'Quantitative' },
-  { value: 'mixed', label: 'Mixed Methods' },
-  { value: 'experimental', label: 'Experimental (RCT)' },
-  { value: 'quasi_experimental', label: 'Quasi-Experimental' },
-  { value: 'modeling', label: 'Modeling' },
-  { value: 'simulation', label: 'Simulation' },
-  { value: 'other', label: 'Other' },
+  { value: 'mixed', label: 'Mixed' },
+  { value: 'experimental_quasi', label: 'Experimental / Quasi-Experimental' },
+  { value: 'modeling_simulation', label: 'Modeling / Simulation' },
+  { value: 'observational', label: 'Observational' },
+  { value: 'evidence_synthesis', label: 'Evidence Synthesis' },
+  { value: 'participatory', label: 'Participatory / Co-produced' },
 ];
 
 export const STATUS_OPTIONS: { value: StatusType; label: string }[] = [
