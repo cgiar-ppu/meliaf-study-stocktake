@@ -115,20 +115,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading: false,
       });
     } catch (error) {
-      // If already signed in, just load the existing session
+      // If already signed in, try to load the existing session
       if (error instanceof Error && error.name === 'UserAlreadyAuthenticatedException') {
-        const cognitoUser = await getCurrentUser();
-        const attributes = await fetchUserAttributes();
-        setAuthState({
-          user: {
-            id: cognitoUser.userId,
-            email: attributes.email ?? email,
-            name: attributes.name,
-          },
-          isAuthenticated: true,
-          isLoading: false,
-        });
-        return;
+        try {
+          const cognitoUser = await getCurrentUser();
+          const attributes = await fetchUserAttributes();
+          setAuthState({
+            user: {
+              id: cognitoUser.userId,
+              email: attributes.email ?? email,
+              name: attributes.name,
+            },
+            isAuthenticated: true,
+            isLoading: false,
+          });
+          return;
+        } catch {
+          // Session is stale/invalid — sign out to clear it so the next attempt works
+          await amplifySignOut().catch(() => {});
+          setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+          throw new Error('Your previous session was invalid and has been cleared. Please sign in again.');
+        }
       }
       setAuthState((prev) => ({ ...prev, isLoading: false }));
       throw error;

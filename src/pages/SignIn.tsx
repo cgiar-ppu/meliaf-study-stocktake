@@ -22,6 +22,10 @@ function mapSignInError(error: unknown): string {
       // Handled in AuthContext — should not reach here, but just in case
       return 'You are already signed in. Redirecting...';
     }
+    // Pass through user-friendly messages thrown by AuthContext (e.g. stale session cleared)
+    if (error.message.startsWith('Your previous session')) {
+      return error.message;
+    }
   }
   return 'Invalid email or password. Please try again.';
 }
