@@ -304,12 +304,14 @@ Resources:
         Variables:
           FRONTEND_URL: !Ref FrontendUrl
           USER_POOL_CLIENT_ID: !Ref MeliafUserPoolClient
+          USER_POOL_ID: !Ref MeliafUserPool
       Policies:
         - Version: '2012-10-17'
           Statement:
             - Effect: Allow
               Action:
                 - cognito-idp:ConfirmSignUp
+                - cognito-idp:AdminGetUser
               Resource: !GetAtt MeliafUserPool.Arn
 
   ConfirmSignupFunctionUrl:

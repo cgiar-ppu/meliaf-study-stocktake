@@ -63,13 +63,42 @@ class TestMissingParams:
 
 class TestExpiredCode:
     @patch("confirm_signup.app.cognito")
-    def test_expired_code_redirects_with_error(self, mock_cognito):
+    def test_expired_code_but_user_confirmed_treats_as_success(self, mock_cognito):
         mock_cognito.exceptions.ExpiredCodeException = type(
             "ExpiredCodeException", (Exception,), {}
         )
         mock_cognito.confirm_sign_up.side_effect = (
             mock_cognito.exceptions.ExpiredCodeException("Expired")
         )
+        mock_cognito.admin_get_user.return_value = {"UserStatus": "CONFIRMED"}
+        result = lambda_handler(_make_event(), None)
+
+        assert result["statusCode"] == 302
+        assert "confirmed=true" in result["headers"]["Location"]
+
+    @patch("confirm_signup.app.cognito")
+    def test_expired_code_and_user_unconfirmed_redirects_with_error(self, mock_cognito):
+        mock_cognito.exceptions.ExpiredCodeException = type(
+            "ExpiredCodeException", (Exception,), {}
+        )
+        mock_cognito.confirm_sign_up.side_effect = (
+            mock_cognito.exceptions.ExpiredCodeException("Expired")
+        )
+        mock_cognito.admin_get_user.return_value = {"UserStatus": "UNCONFIRMED"}
+        result = lambda_handler(_make_event(), None)
+
+        assert result["statusCode"] == 302
+        assert "error=code_expired" in result["headers"]["Location"]
+
+    @patch("confirm_signup.app.cognito")
+    def test_expired_code_and_lookup_fails_redirects_with_error(self, mock_cognito):
+        mock_cognito.exceptions.ExpiredCodeException = type(
+            "ExpiredCodeException", (Exception,), {}
+        )
+        mock_cognito.confirm_sign_up.side_effect = (
+            mock_cognito.exceptions.ExpiredCodeException("Expired")
+        )
+        mock_cognito.admin_get_user.side_effect = RuntimeError("Boom")
         result = lambda_handler(_make_event(), None)
 
         assert result["statusCode"] == 302

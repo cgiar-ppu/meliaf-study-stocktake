@@ -15,6 +15,7 @@ logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:8080")
 USER_POOL_CLIENT_ID = os.environ.get("USER_POOL_CLIENT_ID", "")
+USER_POOL_ID = os.environ.get("USER_POOL_ID", "")
 
 cognito = boto3.client("cognito-idp")
 
@@ -54,7 +55,17 @@ def lambda_handler(event, context):
         return _redirect("/signin", {"confirmed": "true"})
 
     except cognito.exceptions.ExpiredCodeException:
+        # Code was already consumed — check if user is actually confirmed
         logger.warning("Expired confirmation code for %s", email)
+        try:
+            user = cognito.admin_get_user(
+                UserPoolId=USER_POOL_ID, Username=email
+            )
+            if user.get("UserStatus") == "CONFIRMED":
+                logger.info("User %s already confirmed (code reused)", email)
+                return _redirect("/signin", {"confirmed": "true"})
+        except Exception:
+            logger.exception("Failed to check user status for %s", email)
         return _redirect("/signin", {"error": "code_expired"})
 
     except cognito.exceptions.NotAuthorizedException:
