@@ -72,7 +72,7 @@ def _confirmation_email(code: str, email: str) -> tuple[str, str]:
 <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 24px;">
   Thanks for signing up for MELIAF Study Stocktake. Click the button below to verify your email address and activate your account.
 </p>
-<table cellpadding="0" cellspacing="0" style="margin:0 0 16px;">
+<table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
 <tr><td style="background-color:{BRAND_GREEN};border-radius:6px;padding:12px 28px;">
   <a href="{link}" style="color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;display:inline-block;">Verify my email</a>
 </td></tr>
