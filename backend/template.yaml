@@ -82,7 +82,7 @@ Resources:
           RequireNumbers: true
           RequireSymbols: false
       VerificationMessageTemplate:
-        DefaultEmailOption: CONFIRM_WITH_LINK
+        DefaultEmailOption: CONFIRM_WITH_CODE
       Schema:
         - Name: email
           AttributeDataType: String
@@ -95,6 +95,7 @@ Resources:
       LambdaConfig:
         PreSignUp: !GetAtt PreSignUpValidationFunction.Arn
         PostConfirmation: !GetAtt PostConfirmationCreateUserFunction.Arn
+        CustomMessage: !GetAtt CustomMessageFunction.Arn
       UserPoolTags:
         Project: meliaf-study-stocktake
         Environment: !Ref Environment
@@ -265,6 +266,59 @@ Resources:
       Principal: cognito-idp.amazonaws.com
       SourceArn: !GetAtt MeliafUserPool.Arn
 
+  CustomMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-custom-message-${Environment}
+      CodeUri: functions/cognito_triggers/
+      Handler: custom_message.lambda_handler
+      Description: Branded email templates for Cognito messages
+      Environment:
+        Variables:
+          CONFIRM_SIGNUP_URL: !GetAtt ConfirmSignupFunctionUrl.FunctionUrl
+
+  CustomMessagePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt CustomMessageFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt MeliafUserPool.Arn
+
+  # --- Confirm Signup (Lambda Function URL) ---
+  ConfirmSignupFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-confirm-signup-${Environment}
+      CodeUri: functions/confirm_signup/
+      Handler: app.lambda_handler
+      Description: Confirm Cognito sign-up and redirect to app
+      Environment:
+        Variables:
+          FRONTEND_URL: !Ref FrontendUrl
+          USER_POOL_CLIENT_ID: !Ref MeliafUserPoolClient
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - cognito-idp:ConfirmSignUp
+              Resource: !GetAtt MeliafUserPool.Arn
+
+  ConfirmSignupFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE
+      TargetFunctionArn: !GetAtt ConfirmSignupFunction.Arn
+
+  ConfirmSignupFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt ConfirmSignupFunction.Arn
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
   # --- Stub Functions ---
   HealthFunction:
     Type: AWS::Serverless::Function
@@ -408,3 +462,6 @@ Outputs:
   UserPoolDomain:
     Description: Cognito User Pool Domain
     Value: !Sub meliaf-${Environment}.auth.${AWS::Region}.amazoncognito.com
+  ConfirmSignupUrl:
+    Description: Lambda Function URL for email confirmation
+    Value: !GetAtt ConfirmSignupFunctionUrl.FunctionUrl

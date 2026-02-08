@@ -39,7 +39,7 @@ export default function SignIn() {
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
 
-  // Show success message when arriving from email confirmation
+  // Show success/error messages when arriving from email confirmation
   useEffect(() => {
     if (searchParams.get('confirmed') === 'true') {
       setConfirmed(true);
@@ -47,6 +47,13 @@ export default function SignIn() {
         title: 'Email confirmed',
         description: 'Your email has been confirmed. You can now sign in.',
       });
+    }
+
+    const errorParam = searchParams.get('error');
+    if (errorParam === 'confirmation_failed') {
+      setError('Email confirmation failed. The link may be invalid. Please try signing up again or contact support.');
+    } else if (errorParam === 'code_expired') {
+      setError('Your confirmation link has expired. Please sign up again to receive a new link.');
     }
   }, [searchParams, toast]);
 
