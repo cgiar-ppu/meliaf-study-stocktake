@@ -14,7 +14,7 @@ os.environ["ENVIRONMENT"] = "test"
 os.environ["LOG_LEVEL"] = "DEBUG"
 os.environ["AWS_DEFAULT_REGION"] = "eu-central-1"
 os.environ["FRONTEND_URL"] = "http://localhost:8080"
-os.environ["CONFIRM_SIGNUP_URL"] = "https://test-confirm.lambda-url.eu-central-1.on.aws/"
+os.environ["CONFIRM_SIGNUP_FUNCTION_NAME"] = "meliaf-confirm-signup-test"
 os.environ["USER_POOL_CLIENT_ID"] = "test-client-id-123"
 
 

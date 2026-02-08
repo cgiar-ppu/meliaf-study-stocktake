@@ -275,7 +275,14 @@ Resources:
       Description: Branded email templates for Cognito messages
       Environment:
         Variables:
-          CONFIRM_SIGNUP_URL: !GetAtt ConfirmSignupFunctionUrl.FunctionUrl
+          CONFIRM_SIGNUP_FUNCTION_NAME: !Sub meliaf-confirm-signup-${Environment}
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:GetFunctionUrlConfig
+              Resource: !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:meliaf-confirm-signup-${Environment}
 
   CustomMessagePermission:
     Type: AWS::Lambda::Permission

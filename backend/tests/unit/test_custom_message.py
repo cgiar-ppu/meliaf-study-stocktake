@@ -1,6 +1,10 @@
 """Tests for CustomMessage Cognito trigger (branded email templates)."""
 
+from unittest.mock import patch
+import cognito_triggers.custom_message as cm
 from cognito_triggers.custom_message import lambda_handler
+
+MOCK_FUNCTION_URL = "https://abc123.lambda-url.eu-central-1.on.aws/"
 
 
 def _make_event(trigger_source, email="jane@cgiar.org", code="123456"):
@@ -17,50 +21,51 @@ def _make_event(trigger_source, email="jane@cgiar.org", code="123456"):
     }
 
 
+@patch.object(cm, "_get_confirm_signup_url", return_value=MOCK_FUNCTION_URL)
 class TestSignUpConfirmation:
-    def test_subject_set(self):
+    def test_subject_set(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         assert "Verify your email" in result["response"]["emailSubject"]
 
-    def test_html_contains_brand(self):
+    def test_html_contains_brand(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
         assert "MELIAF Study Stocktake" in html
 
-    def test_html_contains_green_header(self):
+    def test_html_contains_green_header(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
         assert "#006644" in html
 
-    def test_html_contains_verify_button(self):
+    def test_html_contains_verify_button(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
         assert "Verify my email" in html
 
-    def test_link_includes_code_and_email(self):
+    def test_link_includes_code_and_email(self, _mock):
         event = _make_event("CustomMessage_SignUp", email="bob@cgiar.org", code="ABC123")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
         assert "code=ABC123" in html
         assert "email=bob%40cgiar.org" in html
 
-    def test_link_points_to_confirm_signup_url(self):
+    def test_link_points_to_function_url(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
-        assert "https://test-confirm.lambda-url.eu-central-1.on.aws/" in html
+        assert MOCK_FUNCTION_URL in html
 
-    def test_expiry_note(self):
+    def test_expiry_note(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
         assert "expires in 24 hours" in html
 
-    def test_footer_present(self):
+    def test_footer_present(self, _mock):
         event = _make_event("CustomMessage_SignUp")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]

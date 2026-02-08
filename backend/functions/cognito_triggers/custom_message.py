@@ -4,10 +4,27 @@ import os
 import logging
 import urllib.parse
 
+import boto3
+
 logger = logging.getLogger()
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
-CONFIRM_SIGNUP_URL = os.environ.get("CONFIRM_SIGNUP_URL", "")
+CONFIRM_SIGNUP_FUNCTION_NAME = os.environ.get("CONFIRM_SIGNUP_FUNCTION_NAME", "")
+
+_confirm_signup_url_cache = None
+_lambda_client = boto3.client("lambda")
+
+
+def _get_confirm_signup_url() -> str:
+    """Look up the ConfirmSignup Lambda Function URL and cache it."""
+    global _confirm_signup_url_cache
+    if _confirm_signup_url_cache is None:
+        resp = _lambda_client.get_function_url_config(
+            FunctionName=CONFIRM_SIGNUP_FUNCTION_NAME
+        )
+        _confirm_signup_url_cache = resp["FunctionUrl"]
+        logger.info("Resolved confirm signup URL: %s", _confirm_signup_url_cache)
+    return _confirm_signup_url_cache
 
 BRAND_GREEN = "#006644"
 BRAND_GOLD = "#C4A747"
@@ -46,8 +63,9 @@ def _confirmation_email(code: str, email: str) -> tuple[str, str]:
     """Build subject and HTML body for signup confirmation."""
     subject = "MELIAF Study Stocktake \u2014 Verify your email"
 
+    confirm_url = _get_confirm_signup_url()
     params = urllib.parse.urlencode({"code": code, "email": email})
-    link = f"{CONFIRM_SIGNUP_URL}?{params}"
+    link = f"{confirm_url}?{params}"
 
     body = f"""\
 <h2 style="color:#1a2e1a;margin:0 0 16px;">Verify your email address</h2>
