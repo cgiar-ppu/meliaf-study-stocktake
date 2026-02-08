@@ -15,11 +15,15 @@ import {
 } from 'lucide-react';
 import { listSubmissions, type SubmissionItem } from '@/lib/api';
 import { STUDY_TYPE_OPTIONS } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function MySubmissions() {
+  const { isAuthenticated } = useAuth();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['submissions', 'active'],
     queryFn: () => listSubmissions('active'),
+    enabled: isAuthenticated,
   });
 
   const submissions = data?.submissions ?? [];

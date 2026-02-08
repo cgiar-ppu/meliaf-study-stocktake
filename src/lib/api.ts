@@ -38,7 +38,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const err = body as ApiError;
-    const error = new Error(err.error || 'Request failed') as Error & { details?: ApiError['details'] };
+    const error = new Error(err.error || 'Request failed') as Error & { status?: number; details?: ApiError['details'] };
+    error.status = response.status;
     error.details = err.details;
     throw error;
   }

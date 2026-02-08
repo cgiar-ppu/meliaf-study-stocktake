@@ -27,7 +27,16 @@ const PageLoader = () => (
   </div>
 );
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        if (error instanceof Error && 'status' in error && ((error as Error & { status?: number }).status === 401 || (error as Error & { status?: number }).status === 403)) return false;
+        return failureCount < 3;
+      },
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
