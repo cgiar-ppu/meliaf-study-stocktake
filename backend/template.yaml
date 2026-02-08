@@ -14,6 +14,7 @@ Globals:
       Variables:
         ENVIRONMENT: !Ref Environment
         LOG_LEVEL: !Ref LogLevel
+        SUBMISSIONS_TABLE: !Ref SubmissionsTable
 
 Parameters:
   Environment:
@@ -33,6 +34,7 @@ Parameters:
       - ERROR
 
 Resources:
+  # --- API Gateway ---
   MeliafApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -45,6 +47,72 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
 
+  # --- DynamoDB ---
+  SubmissionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub meliaf-submissions-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: meliaf-study-stocktake
+        - Key: Environment
+          Value: !Ref Environment
+      AttributeDefinitions:
+        - AttributeName: submissionId
+          AttributeType: S
+        - AttributeName: version
+          AttributeType: N
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: createdAt
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+      KeySchema:
+        - AttributeName: submissionId
+          KeyType: HASH
+        - AttributeName: version
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: ByUser
+          KeySchema:
+            - AttributeName: userId
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: ByStatus
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: createdAt
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  # --- Shared IAM Policy for DynamoDB access ---
+  SubmissionsDynamoDBPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub meliaf-submissions-dynamo-${Environment}
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !GetAtt SubmissionsTable.Arn
+              - !Sub '${SubmissionsTable.Arn}/index/*'
+
+  # --- Stub Functions ---
   HealthFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -75,13 +143,99 @@ Resources:
             Path: /hello
             Method: get
 
+  # --- Submission CRUD Functions ---
+  CreateSubmissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-create-submission-${Environment}
+      CodeUri: functions/
+      Handler: create_submission.app.lambda_handler
+      Description: Create a new study submission
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        CreateSubmission:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions
+            Method: post
+
+  ListSubmissionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-list-submissions-${Environment}
+      CodeUri: functions/
+      Handler: list_submissions.app.lambda_handler
+      Description: List submissions for current user
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        ListSubmissions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions
+            Method: get
+
+  UpdateSubmissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-update-submission-${Environment}
+      CodeUri: functions/
+      Handler: update_submission.app.lambda_handler
+      Description: Update a study submission (creates new version)
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        UpdateSubmission:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}
+            Method: put
+
+  DeleteSubmissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-delete-submission-${Environment}
+      CodeUri: functions/
+      Handler: delete_submission.app.lambda_handler
+      Description: Soft-delete (archive) a study submission
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        DeleteSubmission:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}
+            Method: delete
+
+  GetSubmissionHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-get-submission-history-${Environment}
+      CodeUri: functions/
+      Handler: get_submission_history.app.lambda_handler
+      Description: Get version history for a submission
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        GetSubmissionHistory:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}/history
+            Method: get
+
 Outputs:
   ApiUrl:
     Description: API Gateway endpoint URL
     Value: !Sub https://${MeliafApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/
-  HealthFunctionArn:
-    Description: Health Function ARN
-    Value: !GetAtt HealthFunction.Arn
-  HelloFunctionArn:
-    Description: Hello Function ARN
-    Value: !GetAtt HelloFunction.Arn
+  SubmissionsTableName:
+    Description: DynamoDB Submissions Table Name
+    Value: !Ref SubmissionsTable
+  SubmissionsTableArn:
+    Description: DynamoDB Submissions Table ARN
+    Value: !GetAtt SubmissionsTable.Arn

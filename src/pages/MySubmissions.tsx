@@ -1,25 +1,29 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
-import { 
-  FileText, 
-  FolderOpen, 
-  TrendingUp, 
+import { useQuery } from '@tanstack/react-query';
+import {
+  FileText,
+  FolderOpen,
+  TrendingUp,
   Archive,
-  Plus
+  Plus,
+  AlertCircle
 } from 'lucide-react';
-
-// Placeholder data - will be replaced with API calls
-const mockStats = {
-  totalSubmissions: 24,
-  activeStudies: 18,
-  drafts: 3,
-  archivedStudies: 3,
-};
+import { listSubmissions, type SubmissionItem } from '@/lib/api';
+import { STUDY_TYPE_OPTIONS } from '@/types';
 
 export default function MySubmissions() {
-  const isLoading = false; // Will be connected to data fetching
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['submissions', 'active'],
+    queryFn: () => listSubmissions('active'),
+  });
+
+  const submissions = data?.submissions ?? [];
+  const activeCount = submissions.length;
 
   return (
     <div className="space-y-6">
@@ -39,35 +43,31 @@ export default function MySubmissions() {
         </Button>
       </div>
 
+      {/* Error State */}
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Failed to load submissions. Please check your connection and try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          title="Total Submissions"
-          value={mockStats.totalSubmissions}
-          description="All time submissions"
-          icon={FileText}
-          isLoading={isLoading}
-        />
-        <StatCard
           title="Active Studies"
-          value={mockStats.activeStudies}
-          description="Currently in progress"
+          value={activeCount}
+          description="Currently active"
           icon={TrendingUp}
           isLoading={isLoading}
           accent
         />
         <StatCard
-          title="Drafts"
-          value={mockStats.drafts}
-          description="Pending submission"
-          icon={FolderOpen}
-          isLoading={isLoading}
-        />
-        <StatCard
-          title="Archived"
-          value={mockStats.archivedStudies}
-          description="Completed studies"
-          icon={Archive}
+          title="Total Submissions"
+          value={activeCount}
+          description="All time submissions"
+          icon={FileText}
           isLoading={isLoading}
         />
       </div>
@@ -87,16 +87,10 @@ export default function MySubmissions() {
                 Submit a New Study
               </Link>
             </Button>
-            <Button asChild variant="outline" className="justify-start">
-              <Link to="/submissions?status=draft">
-                <FileText className="mr-2 h-4 w-4" />
-                Continue Draft
-              </Link>
-            </Button>
           </CardContent>
         </Card>
 
-        {/* Submissions List Placeholder */}
+        {/* Submissions List */}
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Recent Submissions</CardTitle>
@@ -115,16 +109,41 @@ export default function MySubmissions() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : submissions.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                 <FolderOpen className="mb-2 h-10 w-10 opacity-50" />
                 <p>No submissions yet</p>
                 <p className="text-sm">Submit a study to get started</p>
               </div>
+            ) : (
+              <div className="space-y-3">
+                {submissions.map((sub: SubmissionItem) => (
+                  <SubmissionRow key={sub.submissionId} submission={sub} />
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
       </div>
+    </div>
+  );
+}
+
+function SubmissionRow({ submission }: { submission: SubmissionItem }) {
+  const studyTypeLabel = STUDY_TYPE_OPTIONS.find(o => o.value === submission.studyType)?.label || submission.studyType;
+  const dateStr = new Date(submission.createdAt).toLocaleDateString();
+
+  return (
+    <div className="flex items-center justify-between rounded-lg border p-3">
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-medium">{submission.studyTitle}</p>
+        <p className="text-sm text-muted-foreground">
+          {studyTypeLabel} &middot; {submission.leadCenter} &middot; {dateStr}
+        </p>
+      </div>
+      <Badge variant="secondary" className="ml-2 shrink-0">
+        v{submission.version}
+      </Badge>
     </div>
   );
 }

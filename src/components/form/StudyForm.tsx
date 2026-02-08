@@ -27,6 +27,7 @@ import { SectionE } from './SectionE';
 import { SectionF } from './SectionF';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from '@/hooks/use-toast';
+import { submitStudy } from '@/lib/api';
 
 export function StudyForm() {
   const { toast } = useToast();
@@ -131,16 +132,17 @@ export function StudyForm() {
   const onSubmit = async (data: StudyFormData) => {
     setIsSubmitting(true);
     try {
-      // TODO: Replace with actual API call to AWS API Gateway
-      console.log('Submitting study:', data);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
+      await submitStudy(data as unknown as Record<string, unknown>);
       clearDraft();
       setShowSuccessDialog(true);
-    } catch (error) {
+    } catch (err) {
+      const error = err as Error & { details?: { field: string; message: string }[] };
+      const description = error.details
+        ? error.details.map(d => `${d.field}: ${d.message}`).join(', ')
+        : error.message || 'There was an error submitting your study. Please try again.';
       toast({
         title: 'Submission failed',
-        description: 'There was an error submitting your study. Please try again.',
+        description,
         variant: 'destructive',
       });
     } finally {
