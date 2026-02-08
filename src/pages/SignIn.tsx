@@ -19,7 +19,8 @@ function mapSignInError(error: unknown): string {
       return 'Please confirm your email address before signing in. Check your inbox for a confirmation link.';
     }
     if (error.name === 'UserAlreadyAuthenticatedException') {
-      return 'You are already signed in.';
+      // Handled in AuthContext — should not reach here, but just in case
+      return 'You are already signed in. Redirecting...';
     }
   }
   return 'Invalid email or password. Please try again.';
@@ -29,7 +30,7 @@ export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { signIn, isLoading, toggleDevMode, devModeEnabled } = useAuth();
+  const { signIn, isAuthenticated, isLoading, toggleDevMode, devModeEnabled } = useAuth();
   const { toast } = useToast();
 
   const [email, setEmail] = useState('');
@@ -38,6 +39,13 @@ export default function SignIn() {
   const [confirmed, setConfirmed] = useState(false);
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  // Redirect away if already signed in
+  useEffect(() => {
+    if (isAuthenticated && !isLoading) {
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate, from]);
 
   // Show success/error messages when arriving from email confirmation
   useEffect(() => {
