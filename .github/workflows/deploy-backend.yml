@@ -1,0 +1,119 @@
+name: Deploy Backend (SAM)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: eu-central-1
+  SAM_CLI_TELEMETRY: 0
+
+jobs:
+  validate:
+    name: Validate SAM Template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: SAM Validate
+        working-directory: backend
+        run: sam validate --lint
+
+  test:
+    name: Run Backend Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install test dependencies
+        run: pip install pytest
+
+      - name: Run unit tests
+        working-directory: backend
+        run: pytest tests/ -v
+
+  deploy-dev:
+    name: Deploy to Dev
+    needs: [validate, test]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: SAM Build
+        working-directory: backend
+        run: sam build
+
+      - name: SAM Deploy
+        working-directory: backend
+        run: |
+          sam deploy \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset \
+            --resolve-s3 \
+            --stack-name meliaf-backend-dev \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --parameter-overrides Environment=dev LogLevel=DEBUG \
+            --tags Project=meliaf-study-stocktake Environment=dev ManagedBy=sam
+
+      - name: Get Stack Outputs
+        run: |
+          aws cloudformation describe-stacks \
+            --stack-name meliaf-backend-dev \
+            --query 'Stacks[0].Outputs' \
+            --output table
+
+      - name: Smoke Test
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name meliaf-backend-dev \
+            --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' \
+            --output text)
+          echo "API URL: ${API_URL}"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" "${API_URL}health")
+          echo "Health check response: ${RESPONSE}"
+          if [ "$RESPONSE" != "200" ]; then
+            echo "Health check failed with status ${RESPONSE}"
+            exit 1
+          fi

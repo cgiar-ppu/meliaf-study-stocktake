@@ -1,0 +1,38 @@
+version = 0.1
+
+[default.global.parameters]
+stack_name = "meliaf-backend-dev"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+stack_name = "meliaf-backend-dev"
+s3_prefix = "meliaf-backend-dev"
+region = "eu-central-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+parameter_overrides = "Environment=dev LogLevel=DEBUG"
+fail_on_empty_changeset = false
+tags = "Project=meliaf-study-stocktake Environment=dev ManagedBy=sam"
+
+[staging.deploy.parameters]
+stack_name = "meliaf-backend-staging"
+s3_prefix = "meliaf-backend-staging"
+region = "eu-central-1"
+confirm_changeset = false
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+parameter_overrides = "Environment=staging LogLevel=INFO"
+fail_on_empty_changeset = false
+tags = "Project=meliaf-study-stocktake Environment=staging ManagedBy=sam"
+
+[prod.deploy.parameters]
+stack_name = "meliaf-backend-prod"
+s3_prefix = "meliaf-backend-prod"
+region = "eu-central-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
+parameter_overrides = "Environment=prod LogLevel=WARNING"
+fail_on_empty_changeset = false
+tags = "Project=meliaf-study-stocktake Environment=prod ManagedBy=sam"

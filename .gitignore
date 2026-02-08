@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Context documents (local reference only)
+context/
+
+# SAM build artifacts
+backend/.aws-sam/
+backend/.pytest_cache/
+**/__pycache__/
+*.pyc

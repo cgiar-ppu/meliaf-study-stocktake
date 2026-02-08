@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  MELIAF Study Stocktake - Backend API
+
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.12
+    MemorySize: 256
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        LOG_LEVEL: !Ref LogLevel
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+  LogLevel:
+    Type: String
+    Default: INFO
+    AllowedValues:
+      - DEBUG
+      - INFO
+      - WARNING
+      - ERROR
+
+Resources:
+  MeliafApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub meliaf-api-${Environment}
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,Authorization'"
+        AllowOrigin: "'*'"
+      EndpointConfiguration:
+        Type: REGIONAL
+
+  HealthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-health-${Environment}
+      CodeUri: functions/health/
+      Handler: app.lambda_handler
+      Description: Health check endpoint
+      Events:
+        HealthCheck:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /health
+            Method: get
+
+  HelloFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-hello-${Environment}
+      CodeUri: functions/hello/
+      Handler: app.lambda_handler
+      Description: Hello stub endpoint
+      Events:
+        Hello:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /hello
+            Method: get
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub https://${MeliafApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}/
+  HealthFunctionArn:
+    Description: Health Function ARN
+    Value: !GetAtt HealthFunction.Arn
+  HelloFunctionArn:
+    Description: Hello Function ARN
+    Value: !GetAtt HelloFunction.Arn
