@@ -69,8 +69,8 @@ export function Header() {
 
         {/* User Menu & Theme Toggle */}
         <div className="flex items-center gap-2">
-          {/* Dev Mode Badge */}
-          {devModeEnabled && (
+          {/* Dev Mode Badge — only in dev builds */}
+          {import.meta.env.DEV && devModeEnabled && (
             <button
               onClick={toggleDevMode}
               className="hidden rounded-full bg-warning/20 px-2 py-1 text-xs font-medium text-warning-foreground sm:block"
@@ -108,16 +108,18 @@ export function Header() {
                   Settings
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={toggleDevMode}
-                className="flex items-center gap-2"
-              >
-                <span className={cn(
-                  "h-2 w-2 rounded-full",
-                  devModeEnabled ? "bg-warning" : "bg-muted"
-                )} />
-                {devModeEnabled ? 'Disable' : 'Enable'} Dev Mode
-              </DropdownMenuItem>
+              {import.meta.env.DEV && (
+                <DropdownMenuItem
+                  onClick={toggleDevMode}
+                  className="flex items-center gap-2"
+                >
+                  <span className={cn(
+                    "h-2 w-2 rounded-full",
+                    devModeEnabled ? "bg-warning" : "bg-muted"
+                  )} />
+                  {devModeEnabled ? 'Disable' : 'Enable'} Dev Mode
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => signOut()}

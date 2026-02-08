@@ -30,7 +30,7 @@ React Router with lazy-loaded pages. `ProtectedRoute` checks auth state (bypasse
 | `/` | MySubmissions | Yes |
 | `/dashboard` | Dashboard | Yes |
 | `/submit` | SubmitStudy | Yes |
-| `/signin`, `/signup`, `/forgot-password` | Auth pages | No |
+| `/signin`, `/signup`, `/forgot-password`, `/confirm-email` | Auth pages | No |
 
 ### Multi-Section Study Form
 
@@ -49,9 +49,9 @@ Each section is a memoized component (`React.memo`). Form state is managed by Re
 
 `src/types/index.ts` defines enum types, dropdown option arrays, and the `StudySubmission` interface. All enum values are co-located here and mirrored in `backend/functions/shared/constants.py`.
 
-### Auth
+### Auth (Frontend)
 
-`src/contexts/AuthContext.tsx` provides auth state via React Context. `DEV_MODE` defaults to `true` with a mock user — toggled via `toggleDevMode()`. Prepared for AWS Cognito integration (not yet connected).
+`src/contexts/AuthContext.tsx` provides auth state via React Context backed by AWS Cognito (Amplify v6). Key methods: `signIn`, `signUp`, `signOut`, `resetPassword`, `confirmPasswordReset`, `getIdToken`. Dev mode (mock user `dev-user-001`) is gated behind `import.meta.env.DEV` and only activates when Cognito env vars are not set. `src/lib/amplify.ts` initialises Amplify from `VITE_COGNITO_USER_POOL_ID` and `VITE_COGNITO_CLIENT_ID`. `src/lib/api.ts` automatically injects `Authorization: Bearer <idToken>` on every request when Cognito is configured.
 
 ### Data Layer
 
@@ -83,10 +83,11 @@ pytest tests/ -v             # Run backend unit tests
 
 ### Structure
 
-- `template.yaml` — SAM/CloudFormation template (API Gateway, DynamoDB, Lambda functions, IAM)
+- `template.yaml` — SAM/CloudFormation template (API Gateway, Cognito, DynamoDB, Lambda functions, IAM)
 - `samconfig.toml` — deploy config per environment (dev/staging/prod)
 - `functions/shared/` — shared utilities (db, validator, response helpers, identity, constants)
 - `functions/<name>/app.py` — Lambda handlers (one directory per function)
+- `functions/cognito_triggers/` — Cognito Lambda triggers (pre_signup, post_confirmation)
 - `tests/unit/` — pytest unit tests using moto for DynamoDB mocking
 
 ### API Endpoints
@@ -108,11 +109,34 @@ Append-only / event-sourced pattern — submissions are never updated in place. 
 - **Table**: `meliaf-submissions-{env}` — PK: `submissionId` (S), SK: `version` (N)
 - **GSI ByUser**: `userId` (S) + `createdAt` (S) — powers "My Submissions"
 - **GSI ByStatus**: `status` (S) + `createdAt` (S) — powers dashboard queries
+- **Table**: `meliaf-users-{env}` — PK: `userId` (S). Stores user entities created by Post Confirmation Lambda.
 
-### Auth
+### Auth (Backend)
 
-Currently uses hardcoded dev user (`dev-user-001`) via `functions/shared/identity.py`. Designed for easy swap to JWT/Cognito claims later.
+Cognito User Pool with email sign-up, link-based email confirmation, and a JWT authorizer on API Gateway. `functions/shared/identity.py` extracts `sub` and `email` from `event.requestContext.authorizer.claims`. Falls back to dev user in dev/test environments when no claims present. Pre Sign-Up Lambda (`functions/cognito_triggers/pre_signup.py`) validates email domains (configurable via `AllowedEmailDomains` parameter, default: `cgiar.org,synapsis-analytics.com`). Post Confirmation Lambda (`functions/cognito_triggers/post_confirmation.py`) writes user entities to `meliaf-users-{env}` DynamoDB table. `/health` and `/hello` endpoints have `Auth: NONE` (no JWT required).
 
 ### CI/CD
 
 GitHub Actions (`.github/workflows/deploy-backend.yml`) deploys on push to `main` when `backend/` files change. The workflow validates the template, runs tests (with moto for DynamoDB mocking), then deploys to dev with a smoke test on `/health`. Requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as GitHub secrets.
+
+### Smoke Test Script
+
+`backend/test-api.sh` — runs the full CRUD lifecycle against the deployed API (create → list → update → history → delete → verify). Usage: `./backend/test-api.sh`
+
+## Remaining Work
+
+### Functional (in priority order)
+
+1. ~~**Cognito auth**~~ — Done. User pool, JWT authorizer, Pre Sign-Up domain validation, Post Confirmation user entity, Amplify v6 frontend, email confirmation flow.
+2. **Dashboard page** — Replace placeholder with real data from ByStatus GSI (counts by status, study type, center)
+3. **View/Edit submission** — Detail page for a submission, route PUT endpoint through the form for editing
+4. **Delete from UI** — Delete button in MySubmissions triggering the DELETE endpoint
+
+### Infrastructure / production hardening
+
+5. **Frontend hosting** — S3 + CloudFront or Amplify Hosting with CI/CD for frontend builds
+6. **Custom domain** — Route 53 + ACM certificate for API and frontend
+7. **WAF** — Web Application Firewall on API Gateway
+8. **Monitoring** — CloudWatch dashboards, alarms, error alerting
+9. **Multi-environment** — Staging/prod deployments (CI/CD ready, needs env config + promotion workflow)
+10. **API throttling** — Rate limiting on API Gateway

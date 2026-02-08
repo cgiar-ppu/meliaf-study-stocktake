@@ -9,10 +9,29 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Info } from 'lucide-react';
 import cgiarLogo from '@/assets/cgiar-logo.png';
 
+const ALLOWED_DOMAINS = ['cgiar.org', 'synapsis-analytics.com'];
+
+function getEmailDomain(email: string): string {
+  const parts = email.split('@');
+  return parts.length === 2 ? parts[1].toLowerCase() : '';
+}
+
+function mapSignUpError(error: unknown): string {
+  if (error instanceof Error) {
+    if (error.name === 'UsernameExistsException') {
+      return 'An account with this email already exists.';
+    }
+    if (error.message?.includes('not allowed')) {
+      return error.message;
+    }
+  }
+  return 'An error occurred during sign up. Please try again.';
+}
+
 export default function SignUp() {
   const navigate = useNavigate();
   const { signUp, isLoading } = useAuth();
-  
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +47,15 @@ export default function SignUp() {
       return;
     }
 
+    // Client-side domain check for instant feedback
+    const domain = getEmailDomain(email);
+    if (!ALLOWED_DOMAINS.includes(domain)) {
+      setError(
+        `Email domain '${domain}' is not allowed. Please use an email from: ${ALLOWED_DOMAINS.join(', ')}`
+      );
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -40,9 +68,9 @@ export default function SignUp() {
 
     try {
       await signUp(email, password, name);
-      navigate('/');
+      navigate('/confirm-email');
     } catch (err) {
-      setError('An error occurred during sign up. Please try again.');
+      setError(mapSignUpError(err));
     }
   };
 
@@ -75,10 +103,10 @@ export default function SignUp() {
               <Alert className="border-info/30 bg-info/5">
                 <Info className="h-4 w-4 text-info" />
                 <AlertDescription className="text-info">
-                  For CGIAR staff, please use your organizational email address.
+                  Registration is restricted to CGIAR and partner email domains ({ALLOWED_DOMAINS.join(', ')}).
                 </AlertDescription>
               </Alert>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <Input
@@ -104,7 +132,7 @@ export default function SignUp() {
                   autoComplete="email"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <Input
@@ -117,7 +145,7 @@ export default function SignUp() {
                   autoComplete="new-password"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters
+                  Must be at least 8 characters with uppercase, lowercase, and numbers
                 </p>
               </div>
 

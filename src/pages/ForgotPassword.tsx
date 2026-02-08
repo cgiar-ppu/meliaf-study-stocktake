@@ -9,18 +9,22 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import cgiarLogo from '@/assets/cgiar-logo.png';
 
+type Step = 'request' | 'confirm' | 'done';
+
 export default function ForgotPassword() {
-  const { resetPassword } = useAuth();
-  
+  const { resetPassword, confirmPasswordReset } = useAuth();
+
+  const [step, setStep] = useState<Step>('request');
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRequestCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess(false);
 
     if (!email) {
       setError('Please enter your email address.');
@@ -30,9 +34,52 @@ export default function ForgotPassword() {
     setIsLoading(true);
     try {
       await resetPassword(email);
-      setSuccess(true);
+      setStep('confirm');
+    } catch {
+      // Don't reveal whether the email exists
+      setStep('confirm');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleConfirmReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!code || !newPassword || !confirmPassword) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError('Password must be at least 8 characters long.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await confirmPasswordReset(email, code, newPassword);
+      setStep('done');
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      if (err instanceof Error) {
+        if (err.name === 'CodeMismatchException') {
+          setError('Invalid verification code. Please try again.');
+        } else if (err.name === 'ExpiredCodeException') {
+          setError('Verification code has expired. Please request a new one.');
+        } else if (err.name === 'InvalidPasswordException') {
+          setError('Password does not meet requirements. Use at least 8 characters with uppercase, lowercase, and numbers.');
+        } else {
+          setError('An error occurred. Please try again.');
+        }
+      } else {
+        setError('An error occurred. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -51,26 +98,21 @@ export default function ForgotPassword() {
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Reset password</CardTitle>
             <CardDescription>
-              Enter your email address and we'll send you a link to reset your password
+              {step === 'request' && 'Enter your email address and we\'ll send you a verification code'}
+              {step === 'confirm' && 'Enter the verification code sent to your email and choose a new password'}
+              {step === 'done' && 'Your password has been reset successfully'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {success ? (
-              <Alert className="border-success/30 bg-success/5">
-                <CheckCircle2 className="h-4 w-4 text-success" />
-                <AlertDescription className="text-success">
-                  If an account exists with that email, you will receive a password reset link shortly.
-                </AlertDescription>
-              </Alert>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+            {step === 'request' && (
+              <form onSubmit={handleRequestCode} className="space-y-4">
                 {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -91,15 +133,91 @@ export default function ForgotPassword() {
                       Sending...
                     </>
                   ) : (
-                    'Send reset link'
+                    'Send verification code'
                   )}
                 </Button>
               </form>
             )}
+
+            {step === 'confirm' && (
+              <form onSubmit={handleConfirmReset} className="space-y-4">
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="code">Verification Code</Label>
+                  <Input
+                    id="code"
+                    type="text"
+                    placeholder="123456"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                    disabled={isLoading}
+                    autoComplete="one-time-code"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Check your email for the 6-digit code
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword">New Password</Label>
+                  <Input
+                    id="newPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Must be at least 8 characters with uppercase, lowercase, and numbers
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    disabled={isLoading}
+                    autoComplete="new-password"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Resetting...
+                    </>
+                  ) : (
+                    'Reset password'
+                  )}
+                </Button>
+              </form>
+            )}
+
+            {step === 'done' && (
+              <Alert className="border-success/30 bg-success/5">
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <AlertDescription className="text-success">
+                  Your password has been reset successfully. You can now sign in with your new password.
+                </AlertDescription>
+              </Alert>
+            )}
           </CardContent>
           <CardFooter>
-            <Link 
-              to="/signin" 
+            <Link
+              to="/signin"
               className="flex w-full items-center justify-center gap-2 text-sm font-medium text-primary hover:underline"
             >
               <ArrowLeft className="h-4 w-4" />

@@ -1,3 +1,6 @@
+import { fetchAuthSession } from 'aws-amplify/auth';
+import { isCognitoConfigured } from '@/lib/amplify';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 interface ApiError {
@@ -5,11 +8,27 @@ interface ApiError {
   details?: { field: string; message: string }[];
 }
 
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  if (!isCognitoConfigured) return {};
+  try {
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
+    if (token) {
+      return { Authorization: `Bearer ${token}` };
+    }
+  } catch {
+    // No valid session — proceed without auth header
+  }
+  return {};
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const url = `${API_BASE_URL}${path}`;
+  const authHeaders = await getAuthHeaders();
   const response = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options.headers,
     },
     ...options,

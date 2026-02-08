@@ -9,8 +9,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading, devModeEnabled } = useAuth();
   const location = useLocation();
 
-  // Allow access in dev mode
-  if (devModeEnabled) {
+  // Allow access in dev mode (only available in dev builds)
+  if (import.meta.env.DEV && devModeEnabled) {
     return <>{children}</>;
   }
 

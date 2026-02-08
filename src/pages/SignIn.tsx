@@ -1,24 +1,54 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import cgiarLogo from '@/assets/cgiar-logo.png';
+
+function mapSignInError(error: unknown): string {
+  if (error instanceof Error) {
+    if (error.name === 'NotAuthorizedException') {
+      return 'Incorrect email or password.';
+    }
+    if (error.name === 'UserNotConfirmedException') {
+      return 'Please confirm your email address before signing in. Check your inbox for a confirmation link.';
+    }
+    if (error.name === 'UserAlreadyAuthenticatedException') {
+      return 'You are already signed in.';
+    }
+  }
+  return 'Invalid email or password. Please try again.';
+}
 
 export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { signIn, isLoading, toggleDevMode, devModeEnabled } = useAuth();
-  
+  const { toast } = useToast();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/';
+
+  // Show success message when arriving from email confirmation
+  useEffect(() => {
+    if (searchParams.get('confirmed') === 'true') {
+      setConfirmed(true);
+      toast({
+        title: 'Email confirmed',
+        description: 'Your email has been confirmed. You can now sign in.',
+      });
+    }
+  }, [searchParams, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +63,7 @@ export default function SignIn() {
       await signIn(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError('Invalid email or password. Please try again.');
+      setError(mapSignInError(err));
     }
   };
 
@@ -62,13 +92,22 @@ export default function SignIn() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {confirmed && (
+                <Alert className="border-success/30 bg-success/5">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
+                  <AlertDescription className="text-success">
+                    Your email has been confirmed. You can now sign in.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-              
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -81,12 +120,12 @@ export default function SignIn() {
                   autoComplete="email"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  <Link 
-                    to="/forgot-password" 
+                  <Link
+                    to="/forgot-password"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot password?
@@ -122,20 +161,22 @@ export default function SignIn() {
                 Sign up
               </Link>
             </div>
-            
-            {/* Dev Mode Bypass */}
-            <div className="w-full border-t border-border pt-4">
-              <Button 
-                variant="outline" 
-                className="w-full text-muted-foreground"
-                onClick={handleDevModeBypass}
-              >
-                Skip (Dev Mode)
-              </Button>
-              <p className="mt-2 text-center text-xs text-muted-foreground">
-                For development and testing purposes only
-              </p>
-            </div>
+
+            {/* Dev Mode Bypass — only in dev builds */}
+            {import.meta.env.DEV && (
+              <div className="w-full border-t border-border pt-4">
+                <Button
+                  variant="outline"
+                  className="w-full text-muted-foreground"
+                  onClick={handleDevModeBypass}
+                >
+                  Skip (Dev Mode)
+                </Button>
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  For development and testing purposes only
+                </p>
+              </div>
+            )}
           </CardFooter>
         </Card>
       </div>

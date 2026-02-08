@@ -8,6 +8,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "function
 
 # Set required env vars before any handler imports
 os.environ["SUBMISSIONS_TABLE"] = "test-submissions"
+os.environ["USERS_TABLE"] = "test-users"
+os.environ["ALLOWED_EMAIL_DOMAINS"] = "cgiar.org,synapsis-analytics.com"
 os.environ["ENVIRONMENT"] = "test"
 os.environ["LOG_LEVEL"] = "DEBUG"
 os.environ["AWS_DEFAULT_REGION"] = "eu-central-1"
@@ -65,6 +67,27 @@ def mock_dynamodb():
                     ],
                     "Projection": {"ProjectionType": "ALL"},
                 },
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        yield
+
+
+@pytest.fixture
+def mock_users_dynamodb():
+    """Create a mocked DynamoDB Users table."""
+    from moto import mock_aws
+
+    with mock_aws():
+        import boto3
+        client = boto3.client("dynamodb", region_name="eu-central-1")
+        client.create_table(
+            TableName="test-users",
+            KeySchema=[
+                {"AttributeName": "userId", "KeyType": "HASH"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "userId", "AttributeType": "S"},
             ],
             BillingMode="PAY_PER_REQUEST",
         )

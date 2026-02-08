@@ -13,7 +13,7 @@ s3_prefix = "meliaf-backend-dev"
 region = "eu-central-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=dev LogLevel=DEBUG"
+parameter_overrides = "Environment=dev LogLevel=DEBUG FrontendUrl=http://localhost:8080"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=dev ManagedBy=sam"
 
@@ -23,7 +23,7 @@ s3_prefix = "meliaf-backend-staging"
 region = "eu-central-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=staging LogLevel=INFO"
+parameter_overrides = "Environment=staging LogLevel=INFO FrontendUrl=https://staging.meliaf.cgiar.org"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=staging ManagedBy=sam"
 
@@ -33,6 +33,6 @@ s3_prefix = "meliaf-backend-prod"
 region = "eu-central-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=prod LogLevel=WARNING"
+parameter_overrides = "Environment=prod LogLevel=WARNING FrontendUrl=https://meliaf.cgiar.org"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=prod ManagedBy=sam"

@@ -32,6 +32,14 @@ Parameters:
       - INFO
       - WARNING
       - ERROR
+  AllowedEmailDomains:
+    Type: CommaDelimitedList
+    Default: "cgiar.org,synapsis-analytics.com"
+    Description: Comma-separated list of allowed email domains for sign-up
+  FrontendUrl:
+    Type: String
+    Default: "http://localhost:8080"
+    Description: Frontend URL for Cognito callback/logout URLs
 
 Resources:
   # --- API Gateway ---
@@ -46,6 +54,73 @@ Resources:
         AllowOrigin: "'*'"
       EndpointConfiguration:
         Type: REGIONAL
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        AddDefaultAuthorizerToCorsPreflight: false
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt MeliafUserPool.Arn
+
+  # --- Cognito ---
+  MeliafUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub meliaf-users-${Environment}
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_LINK
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+      LambdaConfig:
+        PreSignUp: !GetAtt PreSignUpValidationFunction.Arn
+        PostConfirmation: !GetAtt PostConfirmationCreateUserFunction.Arn
+      UserPoolTags:
+        Project: meliaf-study-stocktake
+        Environment: !Ref Environment
+
+  MeliafUserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub meliaf-${Environment}
+      UserPoolId: !Ref MeliafUserPool
+
+  MeliafUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub meliaf-web-${Environment}
+      UserPoolId: !Ref MeliafUserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: ENABLED
+      CallbackURLs:
+        - !Ref FrontendUrl
+      LogoutURLs:
+        - !Ref FrontendUrl
+      SupportedIdentityProviders:
+        - COGNITO
 
   # --- DynamoDB ---
   SubmissionsTable:
@@ -94,7 +169,26 @@ Resources:
           Projection:
             ProjectionType: ALL
 
-  # --- Shared IAM Policy for DynamoDB access ---
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub meliaf-users-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Project
+          Value: meliaf-study-stocktake
+        - Key: Environment
+          Value: !Ref Environment
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+
+  # --- Shared IAM Policies ---
   SubmissionsDynamoDBPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -112,6 +206,65 @@ Resources:
               - !GetAtt SubmissionsTable.Arn
               - !Sub '${SubmissionsTable.Arn}/index/*'
 
+  UsersDynamoDBPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub meliaf-users-dynamo-${Environment}
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:PutItem
+              - dynamodb:GetItem
+              - dynamodb:UpdateItem
+              - dynamodb:Query
+            Resource:
+              - !GetAtt UsersTable.Arn
+
+  # --- Cognito Trigger Functions ---
+  PreSignUpValidationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-pre-signup-${Environment}
+      CodeUri: functions/cognito_triggers/
+      Handler: pre_signup.lambda_handler
+      Description: Validate email domain on Cognito sign-up
+      Environment:
+        Variables:
+          ALLOWED_EMAIL_DOMAINS: !Join
+            - ","
+            - !Ref AllowedEmailDomains
+
+  PreSignUpValidationPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt PreSignUpValidationFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt MeliafUserPool.Arn
+
+  PostConfirmationCreateUserFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-post-confirmation-${Environment}
+      CodeUri: functions/cognito_triggers/
+      Handler: post_confirmation.lambda_handler
+      Description: Create user entity in DynamoDB after email confirmation
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - !Ref UsersDynamoDBPolicy
+
+  PostConfirmationCreateUserPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt PostConfirmationCreateUserFunction.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt MeliafUserPool.Arn
+
   # --- Stub Functions ---
   HealthFunction:
     Type: AWS::Serverless::Function
@@ -127,6 +280,8 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /health
             Method: get
+            Auth:
+              Authorizer: NONE
 
   HelloFunction:
     Type: AWS::Serverless::Function
@@ -142,6 +297,8 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /hello
             Method: get
+            Auth:
+              Authorizer: NONE
 
   # --- Submission CRUD Functions ---
   CreateSubmissionFunction:
@@ -239,3 +396,15 @@ Outputs:
   SubmissionsTableArn:
     Description: DynamoDB Submissions Table ARN
     Value: !GetAtt SubmissionsTable.Arn
+  UsersTableName:
+    Description: DynamoDB Users Table Name
+    Value: !Ref UsersTable
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref MeliafUserPool
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref MeliafUserPoolClient
+  UserPoolDomain:
+    Description: Cognito User Pool Domain
+    Value: !Sub meliaf-${Environment}.auth.${AWS::Region}.amazoncognito.com

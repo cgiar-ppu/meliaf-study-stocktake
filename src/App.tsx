@@ -17,6 +17,7 @@ const MySubmissions = lazy(() => import("./pages/MySubmissions"));
 const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ConfirmEmail = lazy(() => import("./pages/ConfirmEmail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -42,6 +43,7 @@ const App = () => (
                 <Route path="/signin" element={<SignIn />} />
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/confirm-email" element={<ConfirmEmail />} />
 
                 {/* Protected App Routes */}
                 <Route

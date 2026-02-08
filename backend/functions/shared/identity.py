@@ -1,4 +1,9 @@
-"""User identity extraction. Hardcoded dev user now; swap to JWT claims when Cognito is added."""
+"""User identity extraction from Cognito JWT claims (API Gateway authorizer)."""
+
+import os
+import logging
+
+logger = logging.getLogger()
 
 DEV_USER = {
     "user_id": "dev-user-001",
@@ -7,11 +12,27 @@ DEV_USER = {
 
 
 def get_user_identity(event):
-    """Extract user identity from the API Gateway event.
+    """Extract user identity from API Gateway Cognito authorizer claims.
 
-    Currently returns a hardcoded dev user matching the frontend AuthContext mock.
-    When Cognito is added, switch to:
-        claims = event['requestContext']['authorizer']['claims']
-        return {'user_id': claims['sub'], 'email': claims['email']}
+    In dev/test environments, falls back to a hardcoded dev user when no
+    authorizer claims are present (e.g. local invocation, tests).
+    In staging/prod, missing claims raise an error.
     """
-    return DEV_USER
+    claims = (
+        event.get("requestContext", {})
+        .get("authorizer", {})
+        .get("claims")
+    )
+
+    if claims:
+        return {
+            "user_id": claims["sub"],
+            "email": claims.get("email", ""),
+        }
+
+    env = os.environ.get("ENVIRONMENT", "dev")
+    if env in ("dev", "test"):
+        logger.warning("No authorizer claims — using dev user fallback")
+        return DEV_USER
+
+    raise RuntimeError("Missing authorizer claims — authentication required")
