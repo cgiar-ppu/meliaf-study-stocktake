@@ -94,7 +94,7 @@ jobs:
             --resolve-s3 \
             --stack-name meliaf-backend-dev \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --parameter-overrides Environment=dev LogLevel=DEBUG FrontendUrl=http://localhost:8080 \
+            --parameter-overrides Environment=dev LogLevel=DEBUG FrontendUrl=https://meliaf-study-stocktake.synapsis-analytics.com \
             --tags Project=meliaf-study-stocktake Environment=dev ManagedBy=sam
 
       - name: Get Stack Outputs

@@ -38,7 +38,7 @@ Parameters:
     Description: Comma-separated list of allowed email domains for sign-up
   FrontendUrl:
     Type: String
-    Default: "http://localhost:8080"
+    Default: "https://meliaf-study-stocktake.synapsis-analytics.com"
     Description: Frontend URL for Cognito callback/logout URLs
 
 Resources:
