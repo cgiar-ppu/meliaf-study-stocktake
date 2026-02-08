@@ -47,10 +47,11 @@ class TestSignUpConfirmation:
         assert "Verify my email" in html
 
     def test_link_includes_code_and_email(self, _mock):
-        event = _make_event("CustomMessage_SignUp", email="bob@cgiar.org", code="ABC123")
+        event = _make_event("CustomMessage_SignUp", email="bob@cgiar.org", code="{####}")
         result = lambda_handler(event, None)
         html = result["response"]["emailMessage"]
-        assert "code=ABC123" in html
+        # {####} must appear literally (not URL-encoded) so Cognito can replace it
+        assert "code={####}" in html
         assert "email=bob%40cgiar.org" in html
 
     def test_link_points_to_function_url(self, _mock):
@@ -97,15 +98,43 @@ class TestForgotPassword:
         assert "safely ignore" in html
 
 
-class TestUnhandledTriggers:
-    def test_resend_code_uses_defaults(self):
+@patch.object(cm, "_get_confirm_signup_url", return_value=MOCK_FUNCTION_URL)
+class TestResendCode:
+    """CustomMessage_ResendCode should produce the same branded email as SignUp."""
+
+    def test_subject_set(self, _mock):
         event = _make_event("CustomMessage_ResendCode")
         result = lambda_handler(event, None)
-        # Response should be unchanged (Cognito defaults)
+        assert "Verify your email" in result["response"]["emailSubject"]
+
+    def test_html_contains_brand(self, _mock):
+        event = _make_event("CustomMessage_ResendCode")
+        result = lambda_handler(event, None)
+        html = result["response"]["emailMessage"]
+        assert "MELIAF Study Stocktake" in html
+
+    def test_html_contains_verify_button(self, _mock):
+        event = _make_event("CustomMessage_ResendCode")
+        result = lambda_handler(event, None)
+        html = result["response"]["emailMessage"]
+        assert "Verify my email" in html
+
+    def test_link_includes_code_and_email(self, _mock):
+        event = _make_event("CustomMessage_ResendCode", email="bob@cgiar.org", code="{####}")
+        result = lambda_handler(event, None)
+        html = result["response"]["emailMessage"]
+        assert "code={####}" in html
+        assert "email=bob%40cgiar.org" in html
+
+
+class TestUnhandledTriggers:
+    def test_unknown_trigger_uses_defaults(self):
+        event = _make_event("CustomMessage_AdminCreateUser")
+        result = lambda_handler(event, None)
         assert result["response"]["emailSubject"] == ""
         assert result["response"]["emailMessage"] == ""
 
     def test_returns_event(self):
-        event = _make_event("CustomMessage_ResendCode")
+        event = _make_event("CustomMessage_AdminCreateUser")
         result = lambda_handler(event, None)
         assert result is event

@@ -64,8 +64,8 @@ def _confirmation_email(code: str, email: str) -> tuple[str, str]:
     subject = "MELIAF Study Stocktake \u2014 Verify your email"
 
     confirm_url = _get_confirm_signup_url()
-    params = urllib.parse.urlencode({"code": code, "email": email})
-    link = f"{confirm_url}?{params}"
+    encoded_email = urllib.parse.quote(email, safe="")
+    link = f"{confirm_url}?code={code}&email={encoded_email}"
 
     body = f"""\
 <h2 style="color:#1a2e1a;margin:0 0 16px;">Verify your email address</h2>
@@ -115,7 +115,7 @@ def lambda_handler(event, context):
 
     logger.info("CustomMessage trigger: %s for %s", trigger_source, email)
 
-    if trigger_source == "CustomMessage_SignUp":
+    if trigger_source in ("CustomMessage_SignUp", "CustomMessage_ResendCode"):
         subject, html = _confirmation_email(code, email)
         event["response"]["emailSubject"] = subject
         event["response"]["emailMessage"] = html
