@@ -7,10 +7,17 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { TagInput } from './TagInput';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { MultiSelect } from './MultiSelect';
+import { LEAD_CENTER_OPTIONS, OTHER_CENTERS_GROUPS } from '@/types';
 
 interface SectionAProps {
   form: UseFormReturn<StudyFormData>;
@@ -56,9 +63,20 @@ export const SectionA = memo(function SectionA({ form }: SectionAProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Lead Center / Entity *</FormLabel>
-            <FormControl>
-              <Input placeholder="e.g., IFPRI, CIMMYT" {...field} />
-            </FormControl>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select lead center" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {LEAD_CENTER_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}
@@ -105,15 +123,13 @@ export const SectionA = memo(function SectionA({ form }: SectionAProps) {
           <FormItem className="sm:col-span-2">
             <FormLabel>Other Centers/Programs/Accelerators Involved *</FormLabel>
             <FormControl>
-              <TagInput
+              <MultiSelect
+                groups={OTHER_CENTERS_GROUPS}
                 value={field.value || []}
                 onChange={field.onChange}
-                placeholder="Type and press Enter to add..."
+                placeholder="Select centers, programs, or accelerators..."
               />
             </FormControl>
-            <FormDescription>
-              Add other CGIAR centers or programs involved in this study. Type and press Enter to add.
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

@@ -139,6 +139,66 @@ export type PrimaryUserType =
 
 export type SubmissionStatus = 'draft' | 'active' | 'archived';
 
+export const LEAD_CENTER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'AfricaRice', label: 'AfricaRice' },
+  { value: 'Alliance of Bioversity International and CIAT', label: 'Alliance of Bioversity International and CIAT' },
+  { value: 'CIFOR-ICRAF', label: 'CIFOR-ICRAF' },
+  { value: 'CIMMYT', label: 'CIMMYT' },
+  { value: 'CIP', label: 'CIP' },
+  { value: 'ICARDA', label: 'ICARDA' },
+  { value: 'ICRISAT', label: 'ICRISAT' },
+  { value: 'IFPRI', label: 'IFPRI' },
+  { value: 'IITA', label: 'IITA' },
+  { value: 'ILRI', label: 'ILRI' },
+  { value: 'IRRI', label: 'IRRI' },
+  { value: 'IWMI', label: 'IWMI' },
+  { value: 'WorldFish', label: 'WorldFish' },
+];
+
+export const OTHER_CENTERS_GROUPS = [
+  {
+    label: 'Centers',
+    options: [
+      { value: 'AfricaRice', label: 'AfricaRice' },
+      { value: 'Alliance of Bioversity International and CIAT', label: 'Alliance of Bioversity International and CIAT' },
+      { value: 'CIFOR-ICRAF', label: 'CIFOR-ICRAF' },
+      { value: 'CIMMYT', label: 'CIMMYT' },
+      { value: 'CIP', label: 'CIP' },
+      { value: 'ICARDA', label: 'ICARDA' },
+      { value: 'ICRISAT', label: 'ICRISAT' },
+      { value: 'IFPRI', label: 'IFPRI' },
+      { value: 'IITA', label: 'IITA' },
+      { value: 'ILRI', label: 'ILRI' },
+      { value: 'IRRI', label: 'IRRI' },
+      { value: 'IWMI', label: 'IWMI' },
+      { value: 'WorldFish', label: 'WorldFish' },
+    ],
+  },
+  {
+    label: 'Programs',
+    options: [
+      { value: 'Better Diets and Nutrition', label: 'Better Diets and Nutrition' },
+      { value: 'Breeding for Tomorrow', label: 'Breeding for Tomorrow' },
+      { value: 'Climate Action', label: 'Climate Action' },
+      { value: 'Food Frontiers and Security', label: 'Food Frontiers and Security' },
+      { value: 'Multifunctional Landscapes', label: 'Multifunctional Landscapes' },
+      { value: 'Policy Innovations', label: 'Policy Innovations' },
+      { value: 'Sustainable Animal and Aquatic Foods', label: 'Sustainable Animal and Aquatic Foods' },
+      { value: 'Sustainable Farming', label: 'Sustainable Farming' },
+      { value: 'Scaling for Impact', label: 'Scaling for Impact' },
+    ],
+  },
+  {
+    label: 'Accelerators',
+    options: [
+      { value: 'Capacity Sharing', label: 'Capacity Sharing' },
+      { value: 'Digital Transformation', label: 'Digital Transformation' },
+      { value: 'Gender Equality and Social Inclusion', label: 'Gender Equality and Social Inclusion' },
+      { value: 'Genebanks', label: 'Genebanks' },
+    ],
+  },
+];
+
 // Form field options for dropdowns
 export const STUDY_TYPE_OPTIONS: { value: StudyType; label: string; description: string }[] = [
   { 
