@@ -115,7 +115,7 @@ def valid_submission_body():
         "resultLevel": "outcome",
         "causalityMode": "c2_causal",
         "methodClass": "experimental_quasi",
-        "primaryIndicator": "Crop yield improvement",
+        "primaryIndicator": "Innovation Use",
         "startDate": "2025-01-15",
         "expectedEndDate": "2026-06-30",
         "dataCollectionStatus": "ongoing",

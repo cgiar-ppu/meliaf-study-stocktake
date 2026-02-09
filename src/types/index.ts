@@ -199,6 +199,26 @@ export const OTHER_CENTERS_GROUPS = [
   },
 ];
 
+export const PRIMARY_INDICATOR_GROUPS = [
+  {
+    label: 'Outcomes',
+    options: [
+      { value: 'Innovation Use', label: 'Innovation Use' },
+      { value: 'Policy Change', label: 'Policy Change' },
+      { value: 'Other Outcome', label: 'Other Outcome' },
+    ],
+  },
+  {
+    label: 'Outputs',
+    options: [
+      { value: 'Innovation Development', label: 'Innovation Development' },
+      { value: 'Capacity Sharing', label: 'Capacity Sharing' },
+      { value: 'Knowledge Products', label: 'Knowledge Products' },
+      { value: 'Other Output', label: 'Other Output' },
+    ],
+  },
+];
+
 // Form field options for dropdowns
 export const STUDY_TYPE_OPTIONS: { value: StudyType; label: string; description: string }[] = [
   { 

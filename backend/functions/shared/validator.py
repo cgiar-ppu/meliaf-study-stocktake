@@ -5,10 +5,10 @@ from shared.constants import (
     VALID_STUDY_TYPES, VALID_TIMINGS, VALID_ANALYTICAL_SCOPES,
     VALID_GEOGRAPHIC_SCOPES, VALID_RESULT_LEVELS, VALID_CAUSALITY_MODES,
     VALID_METHOD_CLASSES, VALID_STATUS_TYPES, VALID_FUNDED_TYPES,
-    VALID_YES_NO_NA, VALID_PRIMARY_USER_TYPES,
+    VALID_YES_NO_NA, VALID_PRIMARY_USER_TYPES, VALID_PRIMARY_INDICATORS,
     SECTION_C_CAUSALITY_MODES, SECTION_C_METHOD_CLASSES,
     MAX_STUDY_ID, MAX_STUDY_TITLE, MAX_LEAD_CENTER, MAX_CONTACT_NAME,
-    MAX_PRIMARY_INDICATOR, MAX_RESEARCH_QUESTIONS, MAX_STUDY_INDICATORS,
+    MAX_RESEARCH_QUESTIONS, MAX_STUDY_INDICATORS,
     MAX_FUNDING_SOURCE, MAX_COMMISSIONING_SOURCE,
 )
 
@@ -42,7 +42,7 @@ def validate_submission(data):
     _require_enum(data, "resultLevel", VALID_RESULT_LEVELS, errors)
     _require_enum(data, "causalityMode", VALID_CAUSALITY_MODES, errors)
     _require_enum(data, "methodClass", VALID_METHOD_CLASSES, errors)
-    _require_string(data, "primaryIndicator", MAX_PRIMARY_INDICATOR, errors)
+    _require_enum(data, "primaryIndicator", VALID_PRIMARY_INDICATORS, errors)
 
     # --- Section C: Research Details (validate types/lengths if present) ---
     _optional_string(data, "keyResearchQuestions", MAX_RESEARCH_QUESTIONS, errors)

@@ -8,11 +8,12 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -24,6 +25,7 @@ import {
   RESULT_LEVEL_OPTIONS,
   CAUSALITY_MODE_OPTIONS,
   METHOD_CLASS_OPTIONS,
+  PRIMARY_INDICATOR_GROUPS,
 } from '@/types';
 
 interface SectionBProps {
@@ -275,9 +277,25 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem className="sm:col-span-2">
             <FormLabel>Primary Results Framework Indicator *</FormLabel>
-            <FormControl>
-              <Input placeholder="Enter primary indicator" {...field} />
-            </FormControl>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
+              <FormControl>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select primary indicator" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                {PRIMARY_INDICATOR_GROUPS.map((group) => (
+                  <SelectGroup key={group.label}>
+                    <SelectLabel>{group.label}</SelectLabel>
+                    {group.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
             <FormMessage />
           </FormItem>
         )}

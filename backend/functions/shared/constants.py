@@ -38,6 +38,12 @@ VALID_PRIMARY_USER_TYPES = {
     "policy_makers", "researchers", "other",
 }
 
+VALID_PRIMARY_INDICATORS = {
+    "Innovation Use", "Policy Change", "Other Outcome",
+    "Innovation Development", "Capacity Sharing", "Knowledge Products",
+    "Other Output",
+}
+
 VALID_SUBMISSION_STATUSES = {"active", "superseded", "archived"}
 
 # Section C is required when causalityMode or methodClass match these
@@ -49,7 +55,6 @@ MAX_STUDY_ID = 50
 MAX_STUDY_TITLE = 500
 MAX_LEAD_CENTER = 200
 MAX_CONTACT_NAME = 100
-MAX_PRIMARY_INDICATOR = 500
 MAX_RESEARCH_QUESTIONS = 2000
 MAX_STUDY_INDICATORS = 2000
 MAX_FUNDING_SOURCE = 200
