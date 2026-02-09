@@ -146,6 +146,11 @@ export function restoreSubmission(id: string): Promise<RestoreSubmissionResponse
   });
 }
 
+export function listAllSubmissions(status = 'active'): Promise<ListSubmissionsResponse> {
+  const params = new URLSearchParams({ status });
+  return request<ListSubmissionsResponse>(`/submissions/all?${params}`);
+}
+
 export function getSubmission(id: string): Promise<SubmissionItem> {
   return getSubmissionHistory(id).then(res => {
     const active = res.versions.find(v => v.status === 'active');

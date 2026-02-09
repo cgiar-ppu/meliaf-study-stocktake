@@ -398,6 +398,23 @@ Resources:
             Path: /submissions
             Method: get
 
+  ListAllSubmissionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-list-all-submissions-${Environment}
+      CodeUri: functions/
+      Handler: list_all_submissions.app.lambda_handler
+      Description: List all submissions across all users
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        ListAllSubmissions:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/all
+            Method: get
+
   UpdateSubmissionFunction:
     Type: AWS::Serverless::Function
     Properties:

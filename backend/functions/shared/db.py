@@ -75,6 +75,17 @@ def mark_superseded(submission_id, version):
     )
 
 
+def list_all_submissions(status_filter="active"):
+    """List all submissions via the ByStatus GSI (not filtered by user)."""
+    table = _get_table()
+    response = table.query(
+        IndexName="ByStatus",
+        KeyConditionExpression=Key("status").eq(status_filter),
+        ScanIndexForward=False,
+    )
+    return response.get("Items", [])
+
+
 def update_submission_status(submission_id, version, new_status):
     """Update status and updatedAt in-place on an existing submission."""
     from datetime import datetime, timezone
