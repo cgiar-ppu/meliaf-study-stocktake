@@ -368,8 +368,13 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleSuccessAction}>
-              {isEdit ? 'Back to Submissions' : 'Submit Another Study'}
+            {!isEdit && (
+              <AlertDialogAction variant="outline" onClick={handleSuccessAction}>
+                Submit Another Study
+              </AlertDialogAction>
+            )}
+            <AlertDialogAction onClick={() => navigate('/')}>
+              {isEdit ? 'Back to Submissions' : 'Go to My Submissions'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
