@@ -145,15 +145,20 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
 
   // Form submission
   const onSubmit = async (data: StudyFormData) => {
+    // Strip empty-string values from optional number fields before sending to API
+    const cleaned = { ...data } as Record<string, unknown>;
+    if (cleaned.sampleSize === '') delete cleaned.sampleSize;
+    if (cleaned.dataCollectionRounds === '') delete cleaned.dataCollectionRounds;
+
     setIsSubmitting(true);
     try {
       if (isEdit && submissionId) {
-        await updateSubmission(submissionId, data as unknown as Record<string, unknown>);
+        await updateSubmission(submissionId, cleaned);
         clearDraft();
         queryClient.invalidateQueries({ queryKey: ['submissions'] });
         queryClient.invalidateQueries({ queryKey: ['submission', submissionId] });
       } else {
-        await submitStudy(data as unknown as Record<string, unknown>);
+        await submitStudy(cleaned);
         clearDraft();
       }
       setShowSuccessDialog(true);
@@ -297,16 +302,18 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
 
           {/* Form Actions */}
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleSaveDraft}
-              disabled={isSubmitting}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save Draft
-            </Button>
-            <Button type="submit" disabled={isSubmitting || !isFormComplete}>
+            {!isEdit && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleSaveDraft}
+                disabled={isSubmitting}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save Draft
+              </Button>
+            )}
+            <Button type="submit" disabled={isSubmitting || !isFormComplete || (isEdit && !form.formState.isDirty)}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -319,11 +326,15 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
                 </>
               )}
             </Button>
-            {!isFormComplete && (
+            {!isFormComplete ? (
               <p className="text-sm text-muted-foreground sm:text-right">
                 Complete all required sections to submit
               </p>
-            )}
+            ) : isEdit && !form.formState.isDirty ? (
+              <p className="text-sm text-muted-foreground sm:text-right">
+                Make changes to enable update
+              </p>
+            ) : null}
           </div>
         </form>
       </Form>
