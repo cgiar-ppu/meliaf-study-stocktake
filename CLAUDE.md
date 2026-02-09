@@ -117,7 +117,9 @@ Cognito User Pool with email sign-up, link-based email confirmation, and a JWT a
 
 ### CI/CD
 
-GitHub Actions (`.github/workflows/deploy-backend.yml`) deploys on push to `main` when `backend/` files change. The workflow validates the template, runs tests (with moto for DynamoDB mocking), then deploys to dev with a smoke test on `/health`. Requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as GitHub secrets.
+**Backend**: GitHub Actions (`.github/workflows/deploy-backend.yml`) deploys on push to `main` when `backend/` files change. The workflow validates the template, runs tests (with moto for DynamoDB mocking), then deploys to dev with a smoke test on `/health`. Requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as GitHub secrets.
+
+**Frontend**: AWS Amplify Hosting auto-deploys from the `main` branch on every push. The following `VITE_` environment variables must be set in the Amplify console (App settings → Environment variables): `VITE_API_URL`, `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`. These are **not** picked up from `.env.development` during production builds.
 
 ### Smoke Test Script
 
@@ -134,8 +136,8 @@ GitHub Actions (`.github/workflows/deploy-backend.yml`) deploys on push to `main
 
 ### Infrastructure / production hardening
 
-5. **Frontend hosting** — S3 + CloudFront or Amplify Hosting with CI/CD for frontend builds
-6. **Custom domain** — Route 53 + ACM certificate for API and frontend
+5. ~~**Frontend hosting**~~ — Done. Amplify Hosting auto-deploys from `main` branch.
+6. ~~**Custom domain**~~ — Done. `meliaf-study-stocktake.synapsis-analytics.com` for frontend.
 7. **WAF** — Web Application Firewall on API Gateway
 8. **Monitoring** — CloudWatch dashboards, alarms, error alerting
 9. **Multi-environment** — Staging/prod deployments (CI/CD ready, needs env config + promotion workflow)

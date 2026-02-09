@@ -3,10 +3,10 @@ import { UseFormReturn } from 'react-hook-form';
 import { StudyFormData } from '@/lib/formSchema';
 import { useToast } from '@/hooks/use-toast';
 
-const STORAGE_KEY = 'meliaf_study_draft';
+const DEFAULT_STORAGE_KEY = 'meliaf_study_draft';
 const AUTOSAVE_DELAY = 2000; // 2 seconds
 
-export function useAutoSave(form: UseFormReturn<StudyFormData>) {
+export function useAutoSave(form: UseFormReturn<StudyFormData>, storageKey = DEFAULT_STORAGE_KEY) {
   const { toast } = useToast();
   const timeoutRef = useRef<NodeJS.Timeout>();
   const lastSavedRef = useRef<string>('');
@@ -14,7 +14,7 @@ export function useAutoSave(form: UseFormReturn<StudyFormData>) {
   // Load draft from localStorage
   const loadDraft = useCallback(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(storageKey);
       if (saved) {
         const parsed = JSON.parse(saved);
         // Convert date strings back to Date objects
@@ -26,7 +26,7 @@ export function useAutoSave(form: UseFormReturn<StudyFormData>) {
       console.error('Failed to load draft:', error);
     }
     return null;
-  }, []);
+  }, [storageKey]);
 
   // Save draft to localStorage
   const saveDraft = useCallback((data: StudyFormData) => {
@@ -34,7 +34,7 @@ export function useAutoSave(form: UseFormReturn<StudyFormData>) {
       const serialized = JSON.stringify(data);
       // Only save if data has changed
       if (serialized !== lastSavedRef.current) {
-        localStorage.setItem(STORAGE_KEY, serialized);
+        localStorage.setItem(storageKey, serialized);
         lastSavedRef.current = serialized;
         return true;
       }
@@ -42,17 +42,17 @@ export function useAutoSave(form: UseFormReturn<StudyFormData>) {
       console.error('Failed to save draft:', error);
     }
     return false;
-  }, []);
+  }, [storageKey]);
 
   // Clear draft from localStorage
   const clearDraft = useCallback(() => {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(storageKey);
       lastSavedRef.current = '';
     } catch (error) {
       console.error('Failed to clear draft:', error);
     }
-  }, []);
+  }, [storageKey]);
 
   // Auto-save on form changes
   useEffect(() => {
@@ -79,8 +79,8 @@ export function useAutoSave(form: UseFormReturn<StudyFormData>) {
 
   // Check for existing draft on mount
   const hasDraft = useCallback(() => {
-    return localStorage.getItem(STORAGE_KEY) !== null;
-  }, []);
+    return localStorage.getItem(storageKey) !== null;
+  }, [storageKey]);
 
   return {
     loadDraft,

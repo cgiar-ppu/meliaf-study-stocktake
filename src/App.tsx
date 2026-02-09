@@ -18,6 +18,7 @@ const SignIn = lazy(() => import("./pages/SignIn"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ConfirmEmail = lazy(() => import("./pages/ConfirmEmail"));
+const EditSubmission = lazy(() => import("./pages/EditSubmission"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -85,6 +86,16 @@ const App = () => (
                     <ProtectedRoute>
                       <AppLayout>
                         <SubmitStudy />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/submit/:submissionId"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <EditSubmission />
                       </AppLayout>
                     </ProtectedRoute>
                   }

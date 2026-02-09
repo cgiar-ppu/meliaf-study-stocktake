@@ -1,24 +1,28 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   FileText,
   FolderOpen,
   TrendingUp,
-  Archive,
   Plus,
-  AlertCircle
+  AlertCircle,
+  Eye,
 } from 'lucide-react';
 import { listSubmissions, type SubmissionItem } from '@/lib/api';
 import { STUDY_TYPE_OPTIONS } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { SubmissionPreviewSheet } from '@/components/submission/SubmissionPreviewSheet';
 
 export default function MySubmissions() {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [previewId, setPreviewId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['submissions', 'active'],
@@ -122,32 +126,54 @@ export default function MySubmissions() {
             ) : (
               <div className="space-y-3">
                 {submissions.map((sub: SubmissionItem) => (
-                  <SubmissionRow key={sub.submissionId} submission={sub} />
+                  <SubmissionRow
+                    key={sub.submissionId}
+                    submission={sub}
+                    onPreview={() => setPreviewId(sub.submissionId)}
+                  />
                 ))}
               </div>
             )}
           </CardContent>
         </Card>
       </div>
+
+      <SubmissionPreviewSheet
+        submissionId={previewId}
+        onClose={() => setPreviewId(null)}
+        onEdit={(id) => {
+          setPreviewId(null);
+          navigate(`/submit/${id}`);
+        }}
+      />
     </div>
   );
 }
 
-function SubmissionRow({ submission }: { submission: SubmissionItem }) {
+function SubmissionRow({
+  submission,
+  onPreview,
+}: {
+  submission: SubmissionItem;
+  onPreview: () => void;
+}) {
   const studyTypeLabel = STUDY_TYPE_OPTIONS.find(o => o.value === submission.studyType)?.label || submission.studyType;
   const dateStr = new Date(submission.createdAt).toLocaleDateString();
 
   return (
     <div className="flex items-center justify-between rounded-lg border p-3">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{submission.studyTitle}</p>
+        <p className="truncate font-medium">{submission.studyTitle} &middot; {submission.studyId as string}</p>
         <p className="text-sm text-muted-foreground">
           {studyTypeLabel} &middot; {submission.leadCenter} &middot; {dateStr}
         </p>
       </div>
-      <Badge variant="secondary" className="ml-2 shrink-0">
-        v{submission.version}
-      </Badge>
+      <div className="ml-2 flex shrink-0 items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={onPreview} title="Preview">
+          <Eye className="h-4 w-4" />
+        </Button>
+        <Badge variant="secondary">v{submission.version}</Badge>
+      </div>
     </div>
   );
 }

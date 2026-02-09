@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -27,10 +29,20 @@ import { SectionE } from './SectionE';
 import { SectionF } from './SectionF';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from '@/hooks/use-toast';
-import { submitStudy } from '@/lib/api';
+import { submitStudy, updateSubmission } from '@/lib/api';
 
-export function StudyForm() {
+interface StudyFormProps {
+  mode?: 'create' | 'edit';
+  submissionId?: string;
+  initialData?: Partial<StudyFormData>;
+}
+
+export function StudyForm({ mode = 'create', submissionId, initialData }: StudyFormProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const isEdit = mode === 'edit';
+
   const [openSections, setOpenSections] = useState<string[]>(['a']);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
@@ -38,11 +50,14 @@ export function StudyForm() {
 
   const form = useForm<StudyFormData>({
     resolver: zodResolver(studyFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: isEdit && initialData ? initialData : defaultFormValues,
     mode: 'onChange',
   });
 
-  const { loadDraft, clearDraft, hasDraft } = useAutoSave(form);
+  const autoSaveKey = isEdit && submissionId
+    ? `meliaf_study_edit_${submissionId}`
+    : undefined;
+  const { loadDraft, clearDraft, hasDraft } = useAutoSave(form, autoSaveKey);
 
   // Check for existing draft on mount
   useEffect(() => {
@@ -56,7 +71,7 @@ export function StudyForm() {
     if (draft) {
       form.reset(draft);
       toast({
-        title: 'Draft loaded',
+        title: isEdit ? 'Unsaved edits loaded' : 'Draft loaded',
         description: 'Your previous work has been restored.',
       });
     }
@@ -118,11 +133,11 @@ export function StudyForm() {
       // Section F - Outputs & Users (all required)
       () => !!(formValues.manuscriptDeveloped?.answer && formValues.policyBriefDeveloped?.answer && formValues.relatedToPastStudy?.answer && formValues.intendedPrimaryUser?.length && formValues.commissioningSource),
     ];
-    
+
     // Filter out Section C if not visible
     const activeSections = showSectionC ? sectionChecks : sectionChecks.filter((_, i) => i !== 2);
     const completedCount = activeSections.filter(check => check()).length;
-    
+
     return { completed: completedCount, total: activeSections.length };
   }, [formValues, showSectionC]);
 
@@ -132,16 +147,23 @@ export function StudyForm() {
   const onSubmit = async (data: StudyFormData) => {
     setIsSubmitting(true);
     try {
-      await submitStudy(data as unknown as Record<string, unknown>);
-      clearDraft();
+      if (isEdit && submissionId) {
+        await updateSubmission(submissionId, data as unknown as Record<string, unknown>);
+        clearDraft();
+        queryClient.invalidateQueries({ queryKey: ['submissions'] });
+        queryClient.invalidateQueries({ queryKey: ['submission', submissionId] });
+      } else {
+        await submitStudy(data as unknown as Record<string, unknown>);
+        clearDraft();
+      }
       setShowSuccessDialog(true);
     } catch (err) {
       const error = err as Error & { details?: { field: string; message: string }[] };
       const description = error.details
         ? error.details.map(d => `${d.field}: ${d.message}`).join(', ')
-        : error.message || 'There was an error submitting your study. Please try again.';
+        : error.message || `There was an error ${isEdit ? 'updating' : 'submitting'} your study. Please try again.`;
       toast({
-        title: 'Submission failed',
+        title: isEdit ? 'Update failed' : 'Submission failed',
         description,
         variant: 'destructive',
       });
@@ -157,9 +179,13 @@ export function StudyForm() {
     });
   };
 
-  const handleNewSubmission = () => {
-    form.reset(defaultFormValues);
-    setOpenSections(['a']);
+  const handleSuccessAction = () => {
+    if (isEdit) {
+      navigate('/');
+    } else {
+      form.reset(defaultFormValues);
+      setOpenSections(['a']);
+    }
     setShowSuccessDialog(false);
   };
 
@@ -284,12 +310,12 @@ export function StudyForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
+                  {isEdit ? 'Updating...' : 'Submitting...'}
                 </>
               ) : (
                 <>
                   <Send className="mr-2 h-4 w-4" />
-                  Submit Study
+                  {isEdit ? 'Update Study' : 'Submit Study'}
                 </>
               )}
             </Button>
@@ -308,18 +334,20 @@ export function StudyForm() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Continue with saved draft?
+              {isEdit ? 'Continue with unsaved edits?' : 'Continue with saved draft?'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              We found a previously saved draft. Would you like to continue where you left off?
+              {isEdit
+                ? 'We found unsaved edits for this submission. Would you like to continue where you left off?'
+                : 'We found a previously saved draft. Would you like to continue where you left off?'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleDiscardDraft}>
-              Start Fresh
+              {isEdit ? 'Discard Edits' : 'Start Fresh'}
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleLoadDraft}>
-              Continue Draft
+              {isEdit ? 'Continue Editing' : 'Continue Draft'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -331,15 +359,17 @@ export function StudyForm() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-success">
               <CheckCircle2 className="h-5 w-5" />
-              Study Submitted Successfully!
+              {isEdit ? 'Study Updated Successfully!' : 'Study Submitted Successfully!'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Your study has been submitted and is now being processed. You can view it in My Submissions.
+              {isEdit
+                ? 'Your study has been updated. The changes are now saved.'
+                : 'Your study has been submitted and is now being processed. You can view it in My Submissions.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleNewSubmission}>
-              Submit Another Study
+            <AlertDialogAction onClick={handleSuccessAction}>
+              {isEdit ? 'Back to Submissions' : 'Submit Another Study'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

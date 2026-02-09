@@ -108,3 +108,24 @@ export function listSubmissions(status = 'active'): Promise<ListSubmissionsRespo
 export function getSubmissionHistory(id: string): Promise<SubmissionHistoryResponse> {
   return request<SubmissionHistoryResponse>(`/submissions/${id}/history`);
 }
+
+export interface UpdateSubmissionResponse {
+  submissionId: string;
+  version: number;
+  message: string;
+}
+
+export function updateSubmission(id: string, data: Record<string, unknown>): Promise<UpdateSubmissionResponse> {
+  return request<UpdateSubmissionResponse>(`/submissions/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(serializeDates(data)),
+  });
+}
+
+export function getSubmission(id: string): Promise<SubmissionItem> {
+  return getSubmissionHistory(id).then(res => {
+    const active = res.versions.find(v => v.status === 'active');
+    if (!active) throw new Error('Submission not found');
+    return active;
+  });
+}
