@@ -122,6 +122,30 @@ export function updateSubmission(id: string, data: Record<string, unknown>): Pro
   });
 }
 
+export interface DeleteSubmissionResponse {
+  submissionId: string;
+  version: number;
+  message: string;
+}
+
+export function deleteSubmission(id: string): Promise<DeleteSubmissionResponse> {
+  return request<DeleteSubmissionResponse>(`/submissions/${id}`, {
+    method: 'DELETE',
+  });
+}
+
+export interface RestoreSubmissionResponse {
+  submissionId: string;
+  version: number;
+  message: string;
+}
+
+export function restoreSubmission(id: string): Promise<RestoreSubmissionResponse> {
+  return request<RestoreSubmissionResponse>(`/submissions/${id}/restore`, {
+    method: 'POST',
+  });
+}
+
 export function getSubmission(id: string): Promise<SubmissionItem> {
   return getSubmissionHistory(id).then(res => {
     const active = res.versions.find(v => v.status === 'active');

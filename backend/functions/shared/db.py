@@ -29,6 +29,19 @@ def get_latest_active_version(submission_id):
     return items[0] if items else None
 
 
+def get_latest_archived_version(submission_id):
+    """Get the current archived version for a submissionId, or None."""
+    table = _get_table()
+    response = table.query(
+        KeyConditionExpression=Key("submissionId").eq(submission_id),
+        FilterExpression=Attr("status").eq("archived"),
+        ScanIndexForward=False,
+        Limit=10,
+    )
+    items = response.get("Items", [])
+    return items[0] if items else None
+
+
 def list_user_submissions(user_id, status_filter="active"):
     """List submissions for a user via the ByUser GSI, filtered by status."""
     table = _get_table()

@@ -432,6 +432,23 @@ Resources:
             Path: /submissions/{id}
             Method: delete
 
+  RestoreSubmissionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-restore-submission-${Environment}
+      CodeUri: functions/
+      Handler: restore_submission.app.lambda_handler
+      Description: Restore (unarchive) a study submission
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+      Events:
+        RestoreSubmission:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}/restore
+            Method: post
+
   GetSubmissionHistoryFunction:
     Type: AWS::Serverless::Function
     Properties:

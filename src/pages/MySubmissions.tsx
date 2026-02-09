@@ -13,6 +13,7 @@ import {
   Plus,
   AlertCircle,
   Eye,
+  Archive,
 } from 'lucide-react';
 import { listSubmissions, type SubmissionItem } from '@/lib/api';
 import { STUDY_TYPE_OPTIONS } from '@/types';
@@ -23,6 +24,7 @@ export default function MySubmissions() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [archivedPreviewId, setArchivedPreviewId] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['submissions', 'active'],
@@ -30,8 +32,16 @@ export default function MySubmissions() {
     enabled: isAuthenticated,
   });
 
+  const archived = useQuery({
+    queryKey: ['submissions', 'archived'],
+    queryFn: () => listSubmissions('archived'),
+    enabled: isAuthenticated,
+  });
+
   const submissions = data?.submissions ?? [];
+  const archivedSubmissions = archived.data?.submissions ?? [];
   const activeCount = submissions.length;
+  const archivedCount = archivedSubmissions.length;
 
   return (
     <div className="space-y-6">
@@ -72,11 +82,18 @@ export default function MySubmissions() {
           accent
         />
         <StatCard
+          title="Archived"
+          value={archivedCount}
+          description="Archived submissions"
+          icon={Archive}
+          isLoading={archived.isLoading}
+        />
+        <StatCard
           title="Total Submissions"
-          value={activeCount}
+          value={activeCount + archivedCount}
           description="All time submissions"
           icon={FileText}
-          isLoading={isLoading}
+          isLoading={isLoading || archived.isLoading}
         />
       </div>
 
@@ -138,6 +155,30 @@ export default function MySubmissions() {
         </Card>
       </div>
 
+      {/* Archived Submissions */}
+      {archivedSubmissions.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Archive className="h-5 w-5" />
+              Archived Submissions
+            </CardTitle>
+            <CardDescription>Previously archived studies</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {archivedSubmissions.map((sub: SubmissionItem) => (
+                <SubmissionRow
+                  key={sub.submissionId}
+                  submission={sub}
+                  onPreview={() => setArchivedPreviewId(sub.submissionId)}
+                />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <SubmissionPreviewSheet
         submissionId={previewId}
         onClose={() => setPreviewId(null)}
@@ -145,6 +186,13 @@ export default function MySubmissions() {
           setPreviewId(null);
           navigate(`/submit/${id}`);
         }}
+        mode="active"
+      />
+
+      <SubmissionPreviewSheet
+        submissionId={archivedPreviewId}
+        onClose={() => setArchivedPreviewId(null)}
+        mode="archived"
       />
     </div>
   );
