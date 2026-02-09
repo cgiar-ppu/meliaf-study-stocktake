@@ -74,12 +74,20 @@ export default function MySubmissions() {
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
+          title="Total Submissions"
+          value={activeCount + archivedCount}
+          description="All time submissions"
+          icon={FileText}
+          isLoading={isLoading || archived.isLoading}
+          borderColor="border-l-foreground"
+        />
+        <StatCard
           title="Active Studies"
           value={activeCount}
           description="Currently active"
           icon={TrendingUp}
           isLoading={isLoading}
-          accent
+          borderColor="border-l-primary"
         />
         <StatCard
           title="Archived"
@@ -87,13 +95,7 @@ export default function MySubmissions() {
           description="Archived submissions"
           icon={Archive}
           isLoading={archived.isLoading}
-        />
-        <StatCard
-          title="Total Submissions"
-          value={activeCount + archivedCount}
-          description="All time submissions"
-          icon={FileText}
-          isLoading={isLoading || archived.isLoading}
+          borderColor="border-l-destructive"
         />
       </div>
 
@@ -232,12 +234,12 @@ interface StatCardProps {
   description: string;
   icon: React.ElementType;
   isLoading?: boolean;
-  accent?: boolean;
+  borderColor?: string;
 }
 
-function StatCard({ title, value, description, icon: Icon, isLoading, accent }: StatCardProps) {
+function StatCard({ title, value, description, icon: Icon, isLoading, borderColor }: StatCardProps) {
   return (
-    <Card className={accent ? 'border-l-4 border-l-primary' : undefined}>
+    <Card className={borderColor ? `border-l-[6px] ${borderColor}` : undefined}>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
