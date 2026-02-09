@@ -11,20 +11,20 @@ class TestDeleteSubmission:
         response = create_handler(api_gw_event, None)
         sub_id = json.loads(response["body"])["submissionId"]
 
-        # Delete
+        # Delete (archive)
         api_gw_event["pathParameters"] = {"id": sub_id}
         api_gw_event["body"] = None
         response = delete_handler(api_gw_event, None)
 
         assert response["statusCode"] == 200
         body = json.loads(response["body"])
-        assert body["version"] == 2
+        assert body["version"] == 1
 
-        # Verify history: version 1 superseded, version 2 archived
+        # Verify history: single item, status=archived (in-place update)
         history = get_version_history(sub_id)
-        assert len(history) == 2
+        assert len(history) == 1
         assert history[0]["status"] == "archived"
-        assert history[1]["status"] == "superseded"
+        assert history[0]["version"] == 1
 
     def test_not_found(self, mock_dynamodb, api_gw_event):
         api_gw_event["pathParameters"] = {"id": "nonexistent-id"}

@@ -22,18 +22,14 @@ class TestRestoreSubmission:
         response = restore_handler(api_gw_event, None)
         assert response["statusCode"] == 200
         body = json.loads(response["body"])
-        assert body["version"] == 3
+        assert body["version"] == 1
         assert body["message"] == "Submission restored successfully"
 
-        # Verify history: v1 superseded, v2 superseded, v3 active
+        # Verify history: single item, status=active (in-place updates, no new versions)
         history = get_version_history(sub_id)
-        assert len(history) == 3
+        assert len(history) == 1
         assert history[0]["status"] == "active"
-        assert history[0]["version"] == 3
-        assert history[1]["status"] == "superseded"
-        assert history[1]["version"] == 2
-        assert history[2]["status"] == "superseded"
-        assert history[2]["version"] == 1
+        assert history[0]["version"] == 1
 
     def test_not_found_when_no_archived_version(self, mock_dynamodb, api_gw_event):
         api_gw_event["pathParameters"] = {"id": "nonexistent-id"}

@@ -73,3 +73,17 @@ def mark_superseded(submission_id, version):
         ExpressionAttributeNames={"#s": "status"},
         ExpressionAttributeValues={":s": "superseded"},
     )
+
+
+def update_submission_status(submission_id, version, new_status):
+    """Update status and updatedAt in-place on an existing submission."""
+    from datetime import datetime, timezone
+
+    table = _get_table()
+    now = datetime.now(timezone.utc).isoformat()
+    table.update_item(
+        Key={"submissionId": submission_id, "version": version},
+        UpdateExpression="SET #s = :s, updatedAt = :u",
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={":s": new_status, ":u": now},
+    )
