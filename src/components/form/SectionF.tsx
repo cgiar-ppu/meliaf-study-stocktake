@@ -142,7 +142,7 @@ export const SectionF = memo(function SectionF({ form }: SectionFProps) {
           <FormItem className="sm:col-span-2">
             <FormLabel>Commissioning Source *</FormLabel>
             <FormControl>
-              <Input placeholder="Who commissioned this study?" {...field} />
+              <Input placeholder="Who commissioned this study? (Funder, Board, System Council, etc)" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
