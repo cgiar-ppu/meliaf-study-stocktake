@@ -127,7 +127,7 @@ export const SectionD = memo(function SectionD({ form }: SectionDProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Data Collection Status *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
@@ -153,7 +153,7 @@ export const SectionD = memo(function SectionD({ form }: SectionDProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Analysis Status *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />

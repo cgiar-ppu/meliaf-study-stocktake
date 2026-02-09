@@ -119,7 +119,7 @@ export const SectionC = memo(function SectionC({ form }: SectionCProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Power Calculation Conducted?</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select option" />

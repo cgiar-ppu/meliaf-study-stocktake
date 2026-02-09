@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, useWatch } from 'react-hook-form';
 import { StudyFormData } from '@/lib/formSchema';
 import {
   FormField,
@@ -24,7 +24,7 @@ interface SectionEProps {
 }
 
 export const SectionE = memo(function SectionE({ form }: SectionEProps) {
-  const funded = form.watch('funded');
+  const funded = useWatch({ control: form.control, name: 'funded' });
   const showFundingSource = funded === 'yes' || funded === 'partial';
 
   return (
@@ -36,7 +36,7 @@ export const SectionE = memo(function SectionE({ form }: SectionEProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Funded? *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select funding status" />

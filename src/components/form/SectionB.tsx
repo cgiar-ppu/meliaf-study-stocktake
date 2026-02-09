@@ -40,7 +40,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem className="sm:col-span-2">
             <FormLabel>Study Type *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select study type" />
@@ -75,7 +75,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Timing *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select timing" />
@@ -111,7 +111,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Analytical Scope *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select scope" />
@@ -137,7 +137,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Geographic Scope *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select geographic scope" />
@@ -177,7 +177,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Result Level *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select result level" />
@@ -213,7 +213,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Causality Mode *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger className="text-left [&>span>div]:flex-row [&>span>div]:gap-0 [&>span_.select-description]:hidden">
                   <SelectValue placeholder="Select causality mode" />
@@ -249,7 +249,7 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Method Class *</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value ?? ''}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select method class" />
