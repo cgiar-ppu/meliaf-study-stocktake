@@ -158,7 +158,7 @@ export function DashboardCharts({ rows }: DashboardChartsProps) {
         <CollapsibleContent className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
           <div className="px-4 pb-4 space-y-4">
             {/* Row 1: Study Type, Lead Center, Timing */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <HorizontalBarChart
                 title="Study Type"
                 data={studyTypeData}
@@ -177,7 +177,7 @@ export function DashboardCharts({ rows }: DashboardChartsProps) {
             </div>
 
             {/* Row 2: Result Level, Causality Mode, Method Class */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <DonutChart
                 title="Result Level"
                 data={resultLevelData}

@@ -26,8 +26,6 @@ interface HorizontalBarChartProps {
   config: ChartConfig;
 }
 
-const BAR_HEIGHT = 28;
-const PADDING = 8;
 const MAX_LABEL_CHARS = 18;
 const CHAR_WIDTH = 6.5; // approx px per char at fontSize 11
 const LABEL_PADDING = 8;
@@ -54,17 +52,16 @@ export const HorizontalBarChart = React.memo(function HorizontalBarChart({
   data,
   config,
 }: HorizontalBarChartProps) {
-  const chartHeight = Math.max(data.length * BAR_HEIGHT + PADDING, 100);
   const longestTruncated = data.reduce((max, d) => Math.max(max, truncate(d.name).length), 0);
   const yAxisWidth = Math.max(longestTruncated * CHAR_WIDTH + LABEL_PADDING, MIN_LABEL_WIDTH);
 
   return (
-    <Card>
+    <Card className="flex h-full flex-col">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="pb-3">
-        <ChartContainer config={config} className="w-full" style={{ height: chartHeight, aspectRatio: 'unset' }}>
+      <CardContent className="flex-1 pb-3">
+        <ChartContainer config={config} className="h-full w-full" style={{ aspectRatio: 'unset' }}>
           <BarChart
             layout="vertical"
             data={data}
