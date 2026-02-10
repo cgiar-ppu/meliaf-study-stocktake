@@ -13,7 +13,7 @@ s3_prefix = "meliaf-backend-dev"
 region = "eu-central-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=dev LogLevel=DEBUG FrontendUrl=https://meliaf-study-stocktake.synapsis-analytics.com AuthEnabled=false"
+parameter_overrides = "Environment=dev LogLevel=DEBUG FrontendUrl=https://meliaf-study-stocktake.synapsis-analytics.com"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=dev ManagedBy=sam"
 
