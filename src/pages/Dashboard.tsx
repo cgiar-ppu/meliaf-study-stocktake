@@ -46,6 +46,12 @@ import {
   X,
 } from 'lucide-react';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   STUDY_TYPE_OPTIONS,
   TIMING_OPTIONS,
   GEOGRAPHIC_SCOPE_OPTIONS,
@@ -57,6 +63,9 @@ import {
   FUNDED_OPTIONS,
   LEAD_CENTER_OPTIONS,
   PRIMARY_INDICATOR_GROUPS,
+  OTHER_CENTERS_GROUPS,
+  YES_NO_NA_OPTIONS,
+  PRIMARY_USER_OPTIONS,
 } from '@/types';
 
 // --- Lookup maps for enum → label ---
@@ -84,9 +93,31 @@ const primaryIndicatorLookup = buildLookup(
   PRIMARY_INDICATOR_GROUPS.flatMap((g) => g.options)
 );
 
+const otherCentersLookup = buildLookup(OTHER_CENTERS_GROUPS.flatMap((g) => g.options));
+const primaryUserLookup = buildLookup(PRIMARY_USER_OPTIONS);
+const yesNoNaLookup = buildLookup(YES_NO_NA_OPTIONS);
+
 function labelFor(lookup: Record<string, string>, value: unknown): string {
   if (typeof value !== 'string') return String(value ?? '');
   return lookup[value] ?? value;
+}
+
+// --- Truncated cell with tooltip ---
+
+const TRUNCATE_LIMIT = 50;
+
+function TruncatedCell({ text }: { text: string }) {
+  if (!text || text.length <= TRUNCATE_LIMIT) return <>{text}</>;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="cursor-default">{text.slice(0, TRUNCATE_LIMIT)}…</span>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-sm whitespace-normal">
+        {text}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 // --- Column metadata ---
@@ -220,6 +251,146 @@ const columns: ColumnDef<SubmissionItem, unknown>[] = [
     meta: { filterType: 'multi-select', filterOptions: FUNDED_OPTIONS } satisfies ColumnMeta,
     filterFn: multiSelectFilter,
   },
+  // --- New columns (hidden by default) ---
+  {
+    accessorKey: 'studyId',
+    header: 'Study ID',
+    meta: { filterType: 'text' } satisfies ColumnMeta,
+  },
+  {
+    accessorKey: 'otherCenters',
+    header: 'Other Centers',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (!Array.isArray(v) || v.length === 0) return '';
+      const text = v.map((c: string) => otherCentersLookup[c] ?? c).join(', ');
+      return <TruncatedCell text={text} />;
+    },
+  },
+  {
+    accessorKey: 'keyResearchQuestions',
+    header: 'Key Questions',
+    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+  },
+  {
+    accessorKey: 'unitOfAnalysis',
+    header: 'Unit of Analysis',
+    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+  },
+  {
+    accessorKey: 'treatmentIntervention',
+    header: 'Treatment/Intervention',
+    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+  },
+  {
+    accessorKey: 'sampleSize',
+    header: 'Sample Size',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      return v != null ? String(v) : '';
+    },
+  },
+  {
+    accessorKey: 'powerCalculation',
+    header: 'Power Calculation',
+    cell: ({ getValue }) => labelFor(yesNoNaLookup, getValue()),
+    meta: { filterType: 'multi-select', filterOptions: YES_NO_NA_OPTIONS } satisfies ColumnMeta,
+    filterFn: multiSelectFilter,
+  },
+  {
+    accessorKey: 'dataCollectionMethods',
+    header: 'Data Collection Methods',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (!Array.isArray(v) || v.length === 0) return '';
+      const text = v.join(', ');
+      return <TruncatedCell text={text} />;
+    },
+  },
+  {
+    accessorKey: 'studyIndicators',
+    header: 'Study Indicators',
+    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+  },
+  {
+    accessorKey: 'preAnalysisPlan',
+    header: 'Pre-Analysis Plan',
+    cell: ({ getValue }) => {
+      const v = getValue() as { answer?: string } | null | undefined;
+      return v?.answer === 'yes' ? 'Yes' : v?.answer === 'no' ? 'No' : '';
+    },
+  },
+  {
+    accessorKey: 'dataCollectionRounds',
+    header: 'Data Collection Rounds',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      return v != null ? String(v) : '';
+    },
+  },
+  {
+    accessorKey: 'fundingSource',
+    header: 'Funding Source',
+    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+    meta: { filterType: 'text' } satisfies ColumnMeta,
+  },
+  {
+    accessorKey: 'totalCostUSD',
+    header: 'Total Cost (USD)',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (v == null) return '';
+      return Number(v).toLocaleString();
+    },
+  },
+  {
+    accessorKey: 'proposalAvailable',
+    header: 'Proposal Available',
+    cell: ({ getValue }) => {
+      const v = getValue() as { answer?: string } | null | undefined;
+      return v?.answer === 'yes' ? 'Yes' : v?.answer === 'no' ? 'No' : '';
+    },
+  },
+  {
+    accessorKey: 'manuscriptDeveloped',
+    header: 'Manuscript Developed',
+    cell: ({ getValue }) => {
+      const v = getValue() as { answer?: string } | null | undefined;
+      return v?.answer === 'yes' ? 'Yes' : v?.answer === 'no' ? 'No' : '';
+    },
+  },
+  {
+    accessorKey: 'policyBriefDeveloped',
+    header: 'Policy Brief Developed',
+    cell: ({ getValue }) => {
+      const v = getValue() as { answer?: string } | null | undefined;
+      return v?.answer === 'yes' ? 'Yes' : v?.answer === 'no' ? 'No' : '';
+    },
+  },
+  {
+    accessorKey: 'relatedToPastStudy',
+    header: 'Related to Past Study',
+    cell: ({ getValue }) => {
+      const v = getValue() as { answer?: string } | null | undefined;
+      return v?.answer === 'yes' ? 'Yes' : v?.answer === 'no' ? 'No' : '';
+    },
+  },
+  {
+    accessorKey: 'intendedPrimaryUser',
+    header: 'Intended Primary Users',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (!Array.isArray(v) || v.length === 0) return '';
+      const text = v.map((u: string) => primaryUserLookup[u] ?? u).join(', ');
+      return <TruncatedCell text={text} />;
+    },
+  },
+  {
+    accessorKey: 'commissioningSource',
+    header: 'Commissioning Source',
+    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+    meta: { filterType: 'text' } satisfies ColumnMeta,
+  },
   {
     accessorKey: 'createdAt',
     header: 'Created At',
@@ -249,6 +420,25 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
   dataCollectionStatus: false,
   analysisStatus: false,
   funded: false,
+  studyId: false,
+  otherCenters: false,
+  keyResearchQuestions: false,
+  unitOfAnalysis: false,
+  treatmentIntervention: false,
+  sampleSize: false,
+  powerCalculation: false,
+  dataCollectionMethods: false,
+  studyIndicators: false,
+  preAnalysisPlan: false,
+  dataCollectionRounds: false,
+  fundingSource: false,
+  totalCostUSD: false,
+  proposalAvailable: false,
+  manuscriptDeveloped: false,
+  policyBriefDeveloped: false,
+  relatedToPastStudy: false,
+  intendedPrimaryUser: false,
+  commissioningSource: false,
   createdAt: false,
 };
 
@@ -297,6 +487,7 @@ export default function Dashboard() {
   const hasActiveFilters = columnFilters.length > 0;
 
   return (
+    <TooltipProvider>
     <div className="space-y-4">
       {/* Page Header */}
       <div>
@@ -475,6 +666,7 @@ export default function Dashboard() {
         </>
       )}
     </div>
+    </TooltipProvider>
   );
 }
 
