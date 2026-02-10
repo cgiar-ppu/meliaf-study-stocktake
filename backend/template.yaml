@@ -40,6 +40,16 @@ Parameters:
     Type: String
     Default: "https://meliaf-study-stocktake.synapsis-analytics.com"
     Description: Frontend URL for Cognito callback/logout URLs
+  AuthEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues:
+      - "true"
+      - "false"
+    Description: Enable Cognito JWT authorizer on API endpoints (set false for demo mode)
+
+Conditions:
+  IsAuthEnabled: !Equals [!Ref AuthEnabled, "true"]
 
 Resources:
   # --- API Gateway ---
@@ -55,7 +65,7 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       Auth:
-        DefaultAuthorizer: CognitoAuthorizer
+        DefaultAuthorizer: !If [IsAuthEnabled, CognitoAuthorizer, !Ref "AWS::NoValue"]
         AddDefaultAuthorizerToCorsPreflight: false
         Authorizers:
           CognitoAuthorizer:

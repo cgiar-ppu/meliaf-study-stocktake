@@ -22,6 +22,17 @@ const MOCK_USER: User = {
   createdAt: new Date().toISOString(),
 };
 
+// Demo mode — auto-authenticates all visitors without Cognito.
+// Enabled via VITE_DEMO_MODE=true in env vars (works in production builds too).
+const DEMO_USER: User = {
+  id: 'demo-user',
+  email: 'demo@cgiar.org',
+  name: 'Demo User',
+  createdAt: new Date().toISOString(),
+};
+
+const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
@@ -40,13 +51,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  * AND when Cognito is not configured (so local development works without AWS).
  */
 const canUseDevMode = import.meta.env.DEV && !isCognitoConfigured;
+const autoAuth = isDemoMode || canUseDevMode;
+const autoAuthUser = isDemoMode ? DEMO_USER : MOCK_USER;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [devModeEnabled, setDevModeEnabled] = useState(canUseDevMode);
   const [authState, setAuthState] = useState<AuthState>({
-    user: canUseDevMode ? MOCK_USER : null,
-    isAuthenticated: canUseDevMode,
-    isLoading: !canUseDevMode, // need to check session when not in dev mode
+    user: autoAuth ? autoAuthUser : null,
+    isAuthenticated: autoAuth,
+    isLoading: !autoAuth, // need to check session when not auto-authenticated
   });
 
   // Toggle dev mode — only works in dev builds without Cognito
@@ -65,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Check existing Cognito session on mount
   useEffect(() => {
-    if (devModeEnabled) return;
+    if (isDemoMode || devModeEnabled) return;
     if (!isCognitoConfigured) {
       setAuthState({ user: null, isAuthenticated: false, isLoading: false });
       return;
@@ -192,7 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Get the current id token for API calls
   const getIdToken = useCallback(async (): Promise<string | null> => {
-    if (devModeEnabled || !isCognitoConfigured) return null;
+    if (isDemoMode || devModeEnabled || !isCognitoConfigured) return null;
     try {
       const session = await fetchAuthSession();
       return session.tokens?.idToken?.toString() ?? null;
