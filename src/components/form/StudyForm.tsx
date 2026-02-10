@@ -187,7 +187,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
 
   const handleSuccessAction = () => {
     if (isEdit) {
-      navigate('/');
+      navigate('/submissions');
     } else {
       form.reset(defaultFormValues);
       setOpenSections(['a']);
@@ -388,7 +388,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
                 Submit Another Study
               </AlertDialogAction>
             )}
-            <AlertDialogAction onClick={() => navigate('/')}>
+            <AlertDialogAction onClick={() => navigate('/submissions')}>
               {isEdit ? 'Back to Submissions' : 'Go to My Submissions'}
             </AlertDialogAction>
           </AlertDialogFooter>

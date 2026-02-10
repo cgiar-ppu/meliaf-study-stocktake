@@ -46,7 +46,7 @@ export default function EditSubmission() {
           </AlertDescription>
         </Alert>
         <Button variant="outline" asChild>
-          <Link to="/">Back to Submissions</Link>
+          <Link to="/submissions">Back to Submissions</Link>
         </Button>
       </div>
     );
@@ -60,7 +60,7 @@ export default function EditSubmission() {
           variant="ghost"
           size="sm"
           className="mb-2 -ml-2"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/submissions')}
         >
           <ArrowLeft className="mr-1 h-4 w-4" />
           Back
