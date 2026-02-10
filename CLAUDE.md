@@ -53,6 +53,8 @@ Each section is a memoized component (`React.memo`). Form state is managed by Re
 
 `src/contexts/AuthContext.tsx` provides auth state via React Context backed by AWS Cognito (Amplify v6). Key methods: `signIn`, `signUp`, `signOut`, `resetPassword`, `confirmPasswordReset`, `getIdToken`. Dev mode (mock user `dev-user-001`) is gated behind `import.meta.env.DEV` and only activates when Cognito env vars are not set. `src/lib/amplify.ts` initialises Amplify from `VITE_COGNITO_USER_POOL_ID` and `VITE_COGNITO_CLIENT_ID`. `src/lib/api.ts` automatically injects `Authorization: Bearer <idToken>` on every request when Cognito is configured.
 
+**Demo mode** (currently active): `VITE_DEMO_MODE=true` env var auto-authenticates all visitors as `demo-user` / `demo@cgiar.org` without Cognito. Works in production builds — not gated behind `import.meta.env.DEV`. `getIdToken()` returns null; backend `identity.py` falls back to `dev-user-001`.
+
 ### Data Layer
 
 `src/lib/api.ts` is the API client — typed fetch wrapper with error handling. Exports `submitStudy()`, `listSubmissions()`, `getSubmissionHistory()`. Base URL set via `VITE_API_URL` env var (see `.env.development`). TanStack React Query is used for data fetching (`useQuery` in `MySubmissions.tsx`).
@@ -113,7 +115,9 @@ Append-only / event-sourced pattern — submissions are never updated in place. 
 
 ### Auth (Backend)
 
-Cognito User Pool with email sign-up, link-based email confirmation, and a JWT authorizer on API Gateway. `functions/shared/identity.py` extracts `sub` and `email` from `event.requestContext.authorizer.claims`. Falls back to dev user in dev/test environments when no claims present. Pre Sign-Up Lambda (`functions/cognito_triggers/pre_signup.py`) validates email domains (configurable via `AllowedEmailDomains` parameter, default: `cgiar.org,synapsis-analytics.com`). Post Confirmation Lambda (`functions/cognito_triggers/post_confirmation.py`) writes user entities to `meliaf-users-{env}` DynamoDB table. `/health` and `/hello` endpoints have `Auth: NONE` (no JWT required).
+Cognito User Pool with email sign-up, link-based email confirmation, and a JWT authorizer on API Gateway. `functions/shared/identity.py` extracts `sub` and `email` from `event.requestContext.authorizer.claims`. Falls back to dev user in dev/test environments when no claims present. Pre Sign-Up Lambda (`functions/cognito_triggers/pre_signup.py`) validates email domains (configurable via `AllowedEmailDomains` parameter, default: `cgiar.org,synapsis-analytics.com`). Post Confirmation Lambda (`functions/cognito_triggers/post_confirmation.py`) writes user entities to `meliaf-users-{env}` DynamoDB table.
+
+**Demo mode** (currently active): `DefaultAuthorizer` is removed from the API `Auth` block in `template.yaml`, so all endpoints accept unauthenticated requests. `identity.py` falls back to `dev-user-001` in the dev environment. The `CognitoAuthorizer` remains defined but unused.
 
 ### CI/CD
 
@@ -142,3 +146,27 @@ Cognito User Pool with email sign-up, link-based email confirmation, and a JWT a
 8. **Monitoring** — CloudWatch dashboards, alarms, error alerting
 9. **Multi-environment** — Staging/prod deployments (CI/CD ready, needs env config + promotion workflow)
 10. **API throttling** — Rate limiting on API Gateway
+
+## Demo Mode (temporary — will be replaced by SSO)
+
+Currently active. Bypasses Cognito auth on both frontend and backend so demo users can access the app without login.
+
+**What's changed:**
+- **Frontend** (`src/contexts/AuthContext.tsx`): `VITE_DEMO_MODE=true` env var auto-authenticates as `demo-user`. Set in Amplify console.
+- **Backend** (`backend/template.yaml`): `DefaultAuthorizer` removed from API `Auth` block; `/health` and `/hello` `Auth: Authorizer: NONE` overrides also removed (unnecessary without a default).
+
+**Reverting to full Cognito auth:**
+1. Remove `VITE_DEMO_MODE` from Amplify console env vars; restore `VITE_COGNITO_USER_POOL_ID` and `VITE_COGNITO_CLIENT_ID`
+2. In `backend/template.yaml`, restore the API Auth block:
+   ```yaml
+   Auth:
+     DefaultAuthorizer: CognitoAuthorizer
+     AddDefaultAuthorizerToCorsPreflight: false
+     Authorizers:
+       CognitoAuthorizer:
+         UserPoolArn: !GetAtt MeliafUserPool.Arn
+   ```
+3. Re-add `Auth: Authorizer: NONE` to HealthFunction and HelloFunction events
+4. Deploy both frontend (push to main) and backend (`sam build && sam deploy`)
+
+**SAM caveat:** `DefaultAuthorizer` must be a literal string — SAM processes the Auth block before CloudFormation resolves intrinsic functions, so `!If` / `Fn::If` cannot be used there. `Authorizer: NONE` on individual events is only valid when a `DefaultAuthorizer` is set.

@@ -9,10 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
+import {
   LayoutDashboard,
   FileText,
   FolderOpen,
+  Info,
   User,
   LogOut,
   Menu,
@@ -24,7 +25,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import cgiarLogo from '@/assets/cgiar-logo.png';
 
 const navItems = [
-  { to: '/', label: 'My Submissions', icon: FolderOpen },
+  { to: '/', label: 'Introduction', icon: Info },
+  { to: '/submissions', label: 'My Submissions', icon: FolderOpen },
   { to: '/submit', label: 'Submit Study', icon: FileText },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ];

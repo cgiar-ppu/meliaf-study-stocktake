@@ -11,6 +11,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Loader2 } from "lucide-react";
 
 // Lazy-loaded pages
+const Introduction = lazy(() => import("./pages/Introduction"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const SubmitStudy = lazy(() => import("./pages/SubmitStudy"));
 const MySubmissions = lazy(() => import("./pages/MySubmissions"));
@@ -61,14 +62,20 @@ const App = () => (
                   element={
                     <ProtectedRoute>
                       <AppLayout>
-                        <MySubmissions />
+                        <Introduction />
                       </AppLayout>
                     </ProtectedRoute>
                   }
                 />
                 <Route
                   path="/submissions"
-                  element={<Navigate to="/" replace />}
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <MySubmissions />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
                 />
                 <Route
                   path="/dashboard"
