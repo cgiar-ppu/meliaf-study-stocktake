@@ -442,6 +442,16 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
   createdAt: false,
 };
 
+const COLUMN_SECTIONS: { label: string; columns: string[] }[] = [
+  { label: 'A — Basic Information',    columns: ['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail', 'otherCenters'] },
+  { label: 'B — Study Classification', columns: ['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'] },
+  { label: 'C — Research Details',     columns: ['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'] },
+  { label: 'D — Timeline & Status',    columns: ['startDate', 'expectedEndDate', 'dataCollectionStatus', 'analysisStatus'] },
+  { label: 'E — Funding & Resources',  columns: ['funded', 'fundingSource', 'totalCostUSD', 'proposalAvailable'] },
+  { label: 'F — Outputs & Users',      columns: ['manuscriptDeveloped', 'policyBriefDeveloped', 'relatedToPastStudy', 'intendedPrimaryUser', 'commissioningSource'] },
+  { label: 'Metadata',                 columns: ['createdAt'] },
+];
+
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Dashboard() {
@@ -673,6 +683,9 @@ export default function Dashboard() {
 // --- Column picker ---
 
 function ColumnPicker({ table }: { table: ReturnType<typeof useReactTable<SubmissionItem>> }) {
+  const allColumns = table.getAllLeafColumns();
+  const columnById = new Map(allColumns.map((col) => [col.id, col]));
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -683,20 +696,33 @@ function ColumnPicker({ table }: { table: ReturnType<typeof useReactTable<Submis
       </PopoverTrigger>
       <PopoverContent align="start" className="w-56 p-2">
         <div className="max-h-80 overflow-y-auto">
-          {table.getAllLeafColumns().map((column) => (
-            <label
-              key={column.id}
-              className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
-            >
-              <Checkbox
-                checked={column.getIsVisible()}
-                onCheckedChange={(checked) => column.toggleVisibility(!!checked)}
-              />
-              {typeof column.columnDef.header === 'string'
-                ? column.columnDef.header
-                : column.id}
-            </label>
-          ))}
+          {COLUMN_SECTIONS.map((section) => {
+            const sectionColumns = section.columns
+              .map((id) => columnById.get(id))
+              .filter((col): col is NonNullable<typeof col> => col != null);
+            if (sectionColumns.length === 0) return null;
+            return (
+              <div key={section.label}>
+                <div className="px-2 pt-3 pb-1 text-xs font-semibold text-muted-foreground first:pt-1">
+                  {section.label}
+                </div>
+                {sectionColumns.map((column) => (
+                  <label
+                    key={column.id}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-accent"
+                  >
+                    <Checkbox
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(checked) => column.toggleVisibility(!!checked)}
+                    />
+                    {typeof column.columnDef.header === 'string'
+                      ? column.columnDef.header
+                      : column.id}
+                  </label>
+                ))}
+              </div>
+            );
+          })}
         </div>
       </PopoverContent>
     </Popover>
