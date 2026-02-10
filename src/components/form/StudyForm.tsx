@@ -103,14 +103,15 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
   }, [form.formState.errors]);
 
   // Calculate section completion - memoized
-  const getSectionComplete = useCallback((sectionFields: string[], required: boolean = true) => {
+  const getSectionComplete = useCallback((sectionFields: string[], required: boolean = true, mode: 'every' | 'some' = 'every') => {
     if (!required) return true;
     const values = form.getValues();
-    return sectionFields.every((field) => {
+    const check = (field: string) => {
       const value = values[field as keyof StudyFormData];
-      if (Array.isArray(value)) return value.length > 0; // Arrays need at least one item
+      if (Array.isArray(value)) return value.length > 0;
       return value !== undefined && value !== '';
-    });
+    };
+    return mode === 'some' ? sectionFields.some(check) : sectionFields.every(check);
   }, [form]);
 
   // Watch form values for progress calculation
@@ -253,6 +254,9 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
               isOpen={openSections.includes('c')}
               onToggle={() => toggleSection('c')}
               isConditional
+              isRequired
+              isComplete={getSectionComplete(['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'], true, 'some')}
+              hasErrors={getSectionErrors(['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'])}
             >
               <SectionC form={form} />
             </FormSection>
