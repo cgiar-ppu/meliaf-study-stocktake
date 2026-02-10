@@ -66,7 +66,7 @@ export const SectionD = memo(function SectionD({ form }: SectionDProps) {
                   selected={field.value}
                   onSelect={field.onChange}
                   captionLayout="dropdown"
-                  fromYear={2010}
+                  fromYear={1999}
                   toYear={2035}
                   initialFocus
                   className="pointer-events-auto"
@@ -110,7 +110,7 @@ export const SectionD = memo(function SectionD({ form }: SectionDProps) {
                   selected={field.value}
                   onSelect={field.onChange}
                   captionLayout="dropdown"
-                  fromYear={2010}
+                  fromYear={1999}
                   toYear={2035}
                   disabled={(date) => {
                     const startDate = form.getValues('startDate');
