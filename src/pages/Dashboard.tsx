@@ -92,6 +92,7 @@ import {
   YES_NO_NA_OPTIONS,
   PRIMARY_USER_OPTIONS,
 } from '@/types';
+import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 
 // --- Lookup maps for enum → label ---
 
@@ -652,6 +653,9 @@ export default function Dashboard() {
           </AlertDescription>
         </Alert>
       )}
+
+      {/* Portfolio Overview Charts */}
+      <DashboardCharts rows={table.getFilteredRowModel().rows.map(r => r.original)} />
 
       {/* Toolbar: column picker + count */}
       <div className="flex items-center gap-3">
