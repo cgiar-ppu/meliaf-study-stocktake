@@ -83,6 +83,11 @@ export const studyFormSchema = z.object({
     'participatory',
   ], { required_error: 'Method class is required' }),
   primaryIndicator: z.enum([
+    'Poverty Reduction, Livelihoods and Jobs',
+    'Nutrition, Health and Food Security',
+    'Gender Equality, Youth and Social Inclusion',
+    'Climate Adaptation and Mitigation',
+    'Environmental Health and Biodiversity',
     'Innovation Use',
     'Policy Change',
     'Other Outcome',

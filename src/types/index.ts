@@ -145,6 +145,9 @@ export const LEAD_CENTER_OPTIONS: { value: string; label: string }[] = [
   { value: 'CIFOR-ICRAF', label: 'CIFOR-ICRAF' },
   { value: 'CIMMYT', label: 'CIMMYT' },
   { value: 'CIP', label: 'CIP' },
+  { value: 'IAES Evaluation', label: 'IAES Evaluation' },
+  { value: 'IAES IDC', label: 'IAES IDC' },
+  { value: 'IAES SPIA', label: 'IAES SPIA' },
   { value: 'ICARDA', label: 'ICARDA' },
   { value: 'ICRISAT', label: 'ICRISAT' },
   { value: 'IFPRI', label: 'IFPRI' },
@@ -152,6 +155,7 @@ export const LEAD_CENTER_OPTIONS: { value: string; label: string }[] = [
   { value: 'ILRI', label: 'ILRI' },
   { value: 'IRRI', label: 'IRRI' },
   { value: 'IWMI', label: 'IWMI' },
+  { value: 'OCS (Office of the Chief Scientist)', label: 'OCS (Office of the Chief Scientist)' },
   { value: 'WorldFish', label: 'WorldFish' },
 ];
 
@@ -197,6 +201,15 @@ export const OTHER_CENTERS_GROUPS = [
       { value: 'Genebanks', label: 'Genebanks' },
     ],
   },
+  {
+    label: 'System',
+    options: [
+      { value: 'IAES Evaluation', label: 'IAES Evaluation' },
+      { value: 'IAES IDC', label: 'IAES IDC' },
+      { value: 'IAES SPIA', label: 'IAES SPIA' },
+      { value: 'OCS (Office of the Chief Scientist)', label: 'OCS (Office of the Chief Scientist)' },
+    ],
+  },
 ];
 
 export const PRIMARY_INDICATOR_GROUPS = [
@@ -215,6 +228,16 @@ export const PRIMARY_INDICATOR_GROUPS = [
       { value: 'Capacity Sharing', label: 'Capacity Sharing' },
       { value: 'Knowledge Products', label: 'Knowledge Products' },
       { value: 'Other Output', label: 'Other Output' },
+    ],
+  },
+  {
+    label: 'Impacts',
+    options: [
+      { value: 'Poverty Reduction, Livelihoods and Jobs', label: 'Poverty Reduction, Livelihoods and Jobs' },
+      { value: 'Nutrition, Health and Food Security', label: 'Nutrition, Health and Food Security' },
+      { value: 'Gender Equality, Youth and Social Inclusion', label: 'Gender Equality, Youth and Social Inclusion' },
+      { value: 'Climate Adaptation and Mitigation', label: 'Climate Adaptation and Mitigation' },
+      { value: 'Environmental Health and Biodiversity', label: 'Environmental Health and Biodiversity' },
     ],
   },
 ];

@@ -39,6 +39,11 @@ VALID_PRIMARY_USER_TYPES = {
 }
 
 VALID_PRIMARY_INDICATORS = {
+    "Poverty Reduction, Livelihoods and Jobs",
+    "Nutrition, Health and Food Security",
+    "Gender Equality, Youth and Social Inclusion",
+    "Climate Adaptation and Mitigation",
+    "Environmental Health and Biodiversity",
     "Innovation Use", "Policy Change", "Other Outcome",
     "Innovation Development", "Capacity Sharing", "Knowledge Products",
     "Other Output",
