@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useMemo, useState, type CSSProperties } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -12,6 +12,7 @@ import {
   type VisibilityState,
   type ColumnOrderState,
   type Header,
+  type Table as TanstackTable,
 } from '@tanstack/react-table';
 import {
   DndContext,
@@ -60,12 +61,15 @@ import {
   ArrowUpDown,
   BookOpen,
   Columns3,
+  Download,
   FolderOpen,
   ChevronLeft,
   ChevronRight,
   GripVertical,
   X,
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import {
   Tooltip,
   TooltipContent,
@@ -473,6 +477,106 @@ const COLUMN_SECTIONS: { label: string; columns: string[] }[] = [
   { label: 'Metadata',                 columns: ['createdAt'] },
 ];
 
+// --- Export: string formatters (mirrors cell renderers but returns plain strings) ---
+
+function formatYesNo(value: unknown): string {
+  const v = value as { answer?: string } | null | undefined;
+  return v?.answer === 'yes' ? 'Yes' : v?.answer === 'no' ? 'No' : '';
+}
+
+const exportFormatters: Record<string, (value: unknown) => string> = {
+  leadCenter: (v) => labelFor(leadCenterLookup, v),
+  studyType: (v) => labelFor(studyTypeLookup, v),
+  timing: (v) => labelFor(timingLookup, v),
+  geographicScope: (v) => labelFor(geoScopeLookup, v),
+  resultLevel: (v) => labelFor(resultLevelLookup, v),
+  analyticalScope: (v) => labelFor(analyticalScopeLookup, v),
+  causalityMode: (v) => labelFor(causalityModeLookup, v),
+  methodClass: (v) => labelFor(methodClassLookup, v),
+  primaryIndicator: (v) => labelFor(primaryIndicatorLookup, v),
+  dataCollectionStatus: (v) => labelFor(dataCollectionStatusLookup, v),
+  analysisStatus: (v) => labelFor(analysisStatusLookup, v),
+  funded: (v) => labelFor(fundedLookup, v),
+  powerCalculation: (v) => labelFor(yesNoNaLookup, v),
+  otherCenters: (v) => {
+    if (!Array.isArray(v) || v.length === 0) return '';
+    return v.map((c: string) => otherCentersLookup[c] ?? c).join(', ');
+  },
+  dataCollectionMethods: (v) => {
+    if (!Array.isArray(v) || v.length === 0) return '';
+    return v.join(', ');
+  },
+  intendedPrimaryUser: (v) => {
+    if (!Array.isArray(v) || v.length === 0) return '';
+    return v.map((u: string) => primaryUserLookup[u] ?? u).join(', ');
+  },
+  preAnalysisPlan: formatYesNo,
+  proposalAvailable: formatYesNo,
+  manuscriptDeveloped: formatYesNo,
+  policyBriefDeveloped: formatYesNo,
+  relatedToPastStudy: formatYesNo,
+  sampleSize: (v) => (v != null ? String(v) : ''),
+  dataCollectionRounds: (v) => (v != null ? String(v) : ''),
+  totalCostUSD: (v) => (v != null ? Number(v).toLocaleString() : ''),
+  createdAt: (v) => (typeof v === 'string' ? new Date(v).toLocaleDateString() : ''),
+};
+
+function getExportData(table: TanstackTable<SubmissionItem>) {
+  const visibleColumns = table.getVisibleFlatColumns();
+  const filteredRows = table.getFilteredRowModel().rows;
+
+  const headers = visibleColumns.map((col) =>
+    typeof col.columnDef.header === 'string' ? col.columnDef.header : col.id
+  );
+
+  const rows = filteredRows.map((row) =>
+    visibleColumns.map((col) => {
+      const value = row.getValue(col.id);
+      const formatter = exportFormatters[col.id];
+      return formatter ? formatter(value) : String(value ?? '');
+    })
+  );
+
+  return { headers, rows };
+}
+
+function exportTimestamp(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function exportExcel(table: TanstackTable<SubmissionItem>) {
+  const { headers, rows } = getExportData(table);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Submissions');
+  XLSX.writeFile(wb, `meliaf-submissions-${exportTimestamp()}.xlsx`);
+}
+
+function exportCSV(table: TanstackTable<SubmissionItem>) {
+  const { headers, rows } = getExportData(table);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Submissions');
+  XLSX.writeFile(wb, `meliaf-submissions-${exportTimestamp()}.csv`, {
+    bookType: 'csv',
+  });
+}
+
+function exportJSON(table: TanstackTable<SubmissionItem>) {
+  const { headers, rows } = getExportData(table);
+  const objects = rows.map((row) => {
+    const obj: Record<string, string> = {};
+    headers.forEach((h, i) => {
+      obj[h] = row[i];
+    });
+    return obj;
+  });
+  const blob = new Blob([JSON.stringify(objects, null, 2)], {
+    type: 'application/json;charset=utf-8',
+  });
+  saveAs(blob, `meliaf-submissions-${exportTimestamp()}.json`);
+}
+
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Dashboard() {
@@ -553,25 +657,30 @@ export default function Dashboard() {
       <div className="flex items-center gap-3">
         <ColumnPicker table={table} />
         <Glossary />
+        <ExportButton table={table} />
         <Badge variant="secondary" className="text-xs">
           {table.getFilteredRowModel().rows.length} submission{table.getFilteredRowModel().rows.length !== 1 ? 's' : ''}
         </Badge>
-        {hasActiveFilters && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setColumnFilters([])}
-            className="h-8 text-xs"
-          >
-            <X className="mr-1 h-3 w-3" />
-            Clear filters
-          </Button>
-        )}
       </div>
 
       {/* Filters bar */}
       {visibleFilterColumns.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="space-y-2 pt-2 pb-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Filters</h2>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setColumnFilters([])}
+                className="h-6 px-2 text-xs"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Clear all
+              </Button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
           {visibleFilterColumns.map((column) => {
             const meta = column.columnDef.meta as ColumnMeta;
             if (meta.filterType === 'text') {
@@ -597,6 +706,7 @@ export default function Dashboard() {
             }
             return null;
           })}
+          </div>
         </div>
       )}
 
@@ -848,6 +958,53 @@ function Glossary() {
             );
           })}
         </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// --- Export button ---
+
+function ExportButton({ table }: { table: TanstackTable<SubmissionItem> }) {
+  const [open, setOpen] = useState(false);
+
+  const handleExport = useCallback(
+    (format: 'xlsx' | 'csv' | 'json') => {
+      setOpen(false);
+      if (format === 'xlsx') exportExcel(table);
+      else if (format === 'csv') exportCSV(table);
+      else exportJSON(table);
+    },
+    [table]
+  );
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8">
+          <Download className="mr-2 h-3.5 w-3.5" />
+          Export
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-40 p-1">
+        <button
+          className="flex w-full items-center rounded px-2 py-1.5 text-sm hover:bg-accent"
+          onClick={() => handleExport('xlsx')}
+        >
+          Excel (.xlsx)
+        </button>
+        <button
+          className="flex w-full items-center rounded px-2 py-1.5 text-sm hover:bg-accent"
+          onClick={() => handleExport('csv')}
+        >
+          CSV (.csv)
+        </button>
+        <button
+          className="flex w-full items-center rounded px-2 py-1.5 text-sm hover:bg-accent"
+          onClick={() => handleExport('json')}
+        >
+          JSON (.json)
+        </button>
       </PopoverContent>
     </Popover>
   );
