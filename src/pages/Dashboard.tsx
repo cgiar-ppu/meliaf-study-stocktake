@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -10,7 +10,26 @@ import {
   type SortingState,
   type ColumnFiltersState,
   type VisibilityState,
+  type ColumnOrderState,
+  type Header,
 } from '@tanstack/react-table';
+import {
+  DndContext,
+  closestCenter,
+  type DragEndEvent,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
 import { useQuery } from '@tanstack/react-query';
 import { listAllSubmissions, type SubmissionItem } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -44,6 +63,7 @@ import {
   FolderOpen,
   ChevronLeft,
   ChevronRight,
+  GripVertical,
   X,
 } from 'lucide-react';
 import {
@@ -411,36 +431,36 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
   geographicScope: true,
   resultLevel: true,
   startDate: true,
-  contactName: false,
-  contactEmail: false,
-  analyticalScope: false,
-  causalityMode: false,
-  methodClass: false,
-  primaryIndicator: false,
-  expectedEndDate: false,
-  dataCollectionStatus: false,
-  analysisStatus: false,
-  funded: false,
-  studyId: false,
-  otherCenters: false,
-  keyResearchQuestions: false,
-  unitOfAnalysis: false,
-  treatmentIntervention: false,
-  sampleSize: false,
-  powerCalculation: false,
-  dataCollectionMethods: false,
-  studyIndicators: false,
-  preAnalysisPlan: false,
-  dataCollectionRounds: false,
-  fundingSource: false,
-  totalCostUSD: false,
-  proposalAvailable: false,
-  manuscriptDeveloped: false,
-  policyBriefDeveloped: false,
-  relatedToPastStudy: false,
-  intendedPrimaryUser: false,
-  commissioningSource: false,
-  createdAt: false,
+  contactName: true,
+  contactEmail: true,
+  analyticalScope: true,
+  causalityMode: true,
+  methodClass: true,
+  primaryIndicator: true,
+  expectedEndDate: true,
+  dataCollectionStatus: true,
+  analysisStatus: true,
+  funded: true,
+  studyId: true,
+  otherCenters: true,
+  keyResearchQuestions: true,
+  unitOfAnalysis: true,
+  treatmentIntervention: true,
+  sampleSize: true,
+  powerCalculation: true,
+  dataCollectionMethods: true,
+  studyIndicators: true,
+  preAnalysisPlan: true,
+  dataCollectionRounds: true,
+  fundingSource: true,
+  totalCostUSD: true,
+  proposalAvailable: true,
+  manuscriptDeveloped: true,
+  policyBriefDeveloped: true,
+  relatedToPastStudy: true,
+  intendedPrimaryUser: true,
+  commissioningSource: true,
+  createdAt: true,
 };
 
 const COLUMN_SECTIONS: { label: string; columns: string[] }[] = [
@@ -459,15 +479,26 @@ export default function Dashboard() {
   const { isAuthenticated } = useAuth();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
-    () => {
-      const hidden: VisibilityState = {};
-      for (const [key, visible] of Object.entries(DEFAULT_VISIBLE)) {
-        if (!visible) hidden[key] = false;
-      }
-      return hidden;
-    }
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(
+    () => columns.map((c) => (c as { accessorKey: string }).accessorKey)
   );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setColumnOrder((prev) => {
+        const oldIndex = prev.indexOf(active.id as string);
+        const newIndex = prev.indexOf(over.id as string);
+        return arrayMove(prev, oldIndex, newIndex);
+      });
+    }
+  }
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['all-submissions'],
@@ -480,10 +511,11 @@ export default function Dashboard() {
   const table = useReactTable({
     data: submissions,
     columns,
-    state: { sorting, columnFilters, columnVisibility },
+    state: { sorting, columnFilters, columnVisibility, columnOrder },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -582,29 +614,25 @@ export default function Dashboard() {
         </div>
       ) : (
         <>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToHorizontalAxis]}
+            onDragEnd={handleDragEnd}
+          >
           <div className="rounded-md border">
             <Table>
-              <TableHeader>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder ? null : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="-ml-3 h-8 text-xs font-medium"
-                            onClick={header.column.getToggleSortingHandler()}
-                          >
-                            {flexRender(header.column.columnDef.header, header.getContext())}
-                            <ArrowUpDown className="ml-1 h-3 w-3" />
-                          </Button>
-                        )}
-                      </TableHead>
+                <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => (
+                          <DraggableTableHead key={header.id} header={header} />
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
+                  </TableHeader>
+                </SortableContext>
               <TableBody>
                 {table.getRowModel().rows.length === 0 ? (
                   <TableRow>
@@ -629,6 +657,7 @@ export default function Dashboard() {
               </TableBody>
             </Table>
           </div>
+          </DndContext>
 
           {/* Pagination */}
           <div className="flex items-center justify-between">
@@ -679,6 +708,50 @@ export default function Dashboard() {
       )}
     </div>
     </TooltipProvider>
+  );
+}
+
+// --- Draggable table head ---
+
+function DraggableTableHead({
+  header,
+}: {
+  header: Header<SubmissionItem, unknown>;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: header.column.id });
+
+  const style: CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: 'relative',
+    whiteSpace: 'nowrap',
+  };
+
+  return (
+    <TableHead ref={setNodeRef} style={style}>
+      {header.isPlaceholder ? null : (
+        <div className="flex items-center">
+          <span
+            className="mr-1 cursor-grab text-muted-foreground/50 hover:text-muted-foreground"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-3 w-3" />
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="-ml-1 h-8 text-xs font-medium"
+            onClick={header.column.getToggleSortingHandler()}
+          >
+            {flexRender(header.column.columnDef.header, header.getContext())}
+            <ArrowUpDown className="ml-1 h-3 w-3" />
+          </Button>
+        </div>
+      )}
+    </TableHead>
   );
 }
 
