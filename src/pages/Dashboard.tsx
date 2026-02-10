@@ -39,6 +39,7 @@ import {
 import {
   AlertCircle,
   ArrowUpDown,
+  BookOpen,
   Columns3,
   FolderOpen,
   ChevronLeft,
@@ -519,6 +520,7 @@ export default function Dashboard() {
       {/* Toolbar: column picker + count */}
       <div className="flex items-center gap-3">
         <ColumnPicker table={table} />
+        <Glossary />
         <Badge variant="secondary" className="text-xs">
           {table.getFilteredRowModel().rows.length} submission{table.getFilteredRowModel().rows.length !== 1 ? 's' : ''}
         </Badge>
@@ -720,6 +722,55 @@ function ColumnPicker({ table }: { table: ReturnType<typeof useReactTable<Submis
                       : column.id}
                   </label>
                 ))}
+              </div>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// --- Glossary ---
+
+const GLOSSARY_ENTRIES = [
+  { title: 'Study Type', options: STUDY_TYPE_OPTIONS },
+  { title: 'Timing', options: TIMING_OPTIONS },
+  { title: 'Geographic Scope', options: GEOGRAPHIC_SCOPE_OPTIONS },
+  { title: 'Result Level', options: RESULT_LEVEL_OPTIONS },
+  { title: 'Causality Mode', options: CAUSALITY_MODE_OPTIONS },
+];
+
+function Glossary() {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8">
+          <BookOpen className="mr-2 h-3.5 w-3.5" />
+          Glossary
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-96 p-2">
+        <div className="max-h-96 overflow-y-auto">
+          {GLOSSARY_ENTRIES.map((entry) => {
+            const withDesc = entry.options.filter(
+              (o) => 'description' in o && o.description
+            );
+            if (withDesc.length === 0) return null;
+            return (
+              <div key={entry.title} className="border-b border-border last:border-b-0">
+                <div className="px-2 pt-4 pb-1 text-sm font-semibold text-foreground first:pt-1">
+                  {entry.title}
+                </div>
+                {withDesc.map((opt) => (
+                  <div key={opt.value} className="px-2 py-1.5">
+                    <div className="text-sm font-medium">{opt.label}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {(opt as { description?: string }).description}
+                    </div>
+                  </div>
+                ))}
+                <div className="pb-2" />
               </div>
             );
           })}
