@@ -343,8 +343,6 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /health
             Method: get
-            Auth:
-              Authorizer: NONE
 
   HelloFunction:
     Type: AWS::Serverless::Function
@@ -360,8 +358,6 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /hello
             Method: get
-            Auth:
-              Authorizer: NONE
 
   # --- Submission CRUD Functions ---
   CreateSubmissionFunction:
