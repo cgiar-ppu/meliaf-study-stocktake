@@ -10,12 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { 
-  LayoutDashboard, 
-  FileText, 
-  FolderOpen, 
-  User, 
-  LogOut, 
-  Settings,
+  LayoutDashboard,
+  FileText,
+  FolderOpen,
+  User,
+  LogOut,
   Menu,
   X
 } from 'lucide-react';
@@ -102,12 +101,6 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/settings" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
               {import.meta.env.DEV && (
                 <DropdownMenuItem
                   onClick={toggleDevMode}

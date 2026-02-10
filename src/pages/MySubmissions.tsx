@@ -15,6 +15,7 @@ import {
   Eye,
   Archive,
 } from 'lucide-react';
+
 import { listSubmissions, type SubmissionItem } from '@/lib/api';
 import { STUDY_TYPE_OPTIONS } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
@@ -99,63 +100,44 @@ export default function MySubmissions() {
         />
       </div>
 
-      {/* Quick Actions & Submissions List */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and shortcuts</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            <Button asChild variant="outline" className="justify-start">
-              <Link to="/submit">
-                <Plus className="mr-2 h-4 w-4" />
-                Submit a New Study
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Submissions List */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Recent Submissions</CardTitle>
-            <CardDescription>Your latest studies and their status</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="h-10 w-10 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
+      {/* Submissions List */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Submissions</CardTitle>
+          <CardDescription>Your latest studies and their status</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="h-10 w-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
                   </div>
-                ))}
-              </div>
-            ) : submissions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                <FolderOpen className="mb-2 h-10 w-10 opacity-50" />
-                <p>No submissions yet</p>
-                <p className="text-sm">Submit a study to get started</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {submissions.map((sub: SubmissionItem) => (
-                  <SubmissionRow
-                    key={sub.submissionId}
-                    submission={sub}
-                    onPreview={() => setPreviewId(sub.submissionId)}
-                  />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                </div>
+              ))}
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+              <FolderOpen className="mb-2 h-10 w-10 opacity-50" />
+              <p>No submissions yet</p>
+              <p className="text-sm">Submit a study to get started</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {submissions.map((sub: SubmissionItem) => (
+                <SubmissionRow
+                  key={sub.submissionId}
+                  submission={sub}
+                  onPreview={() => setPreviewId(sub.submissionId)}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Archived Submissions */}
       {archivedSubmissions.length > 0 && (
