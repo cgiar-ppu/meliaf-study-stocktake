@@ -17,7 +17,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { MultiSelect } from './MultiSelect';
+import { SearchableSelect } from './SearchableSelect';
 import { LEAD_CENTER_OPTIONS, OTHER_CENTERS_GROUPS } from '@/types';
+import { W3_BILATERAL_GROUPS } from '@/data/w3BilateralProjects';
 
 interface SectionAProps {
   form: UseFormReturn<StudyFormData>;
@@ -56,7 +58,7 @@ export const SectionA = memo(function SectionA({ form }: SectionAProps) {
         )}
       />
 
-      {/* Lead Center / Entity - own row at 50% */}
+      {/* Lead Center / Entity */}
       <FormField
         control={form.control}
         name="leadCenter"
@@ -82,8 +84,27 @@ export const SectionA = memo(function SectionA({ form }: SectionAProps) {
         )}
       />
 
-      {/* Empty spacer to keep Lead Center at 50% on its own row */}
-      <div className="hidden sm:block" />
+      {/* W3 / Bilateral Project */}
+      <FormField
+        control={form.control}
+        name="w3Bilateral"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Window 3 / Bilateral</FormLabel>
+            <FormControl>
+              <SearchableSelect
+                groups={W3_BILATERAL_GROUPS}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                placeholder="Select a project..."
+                searchPlaceholder="Search projects..."
+                emptyMessage="No projects found."
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       {/* Contact Name */}
       <FormField

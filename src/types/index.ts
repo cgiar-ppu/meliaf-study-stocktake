@@ -23,6 +23,7 @@ export interface StudySubmission {
   studyId: string;
   studyTitle: string;
   leadCenter: string;
+  w3Bilateral?: string;
   contactName: string;
   contactEmail: string;
   otherCenters: string[];

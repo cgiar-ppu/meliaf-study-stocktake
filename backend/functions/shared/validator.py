@@ -7,6 +7,7 @@ from shared.constants import (
     VALID_METHOD_CLASSES, VALID_STATUS_TYPES, VALID_FUNDED_TYPES,
     VALID_YES_NO_NA, VALID_PRIMARY_USER_TYPES, VALID_PRIMARY_INDICATORS,
     SECTION_C_CAUSALITY_MODES, SECTION_C_METHOD_CLASSES,
+    MAX_W3_BILATERAL,
     MAX_STUDY_ID, MAX_STUDY_TITLE, MAX_LEAD_CENTER, MAX_CONTACT_NAME,
     MAX_RESEARCH_QUESTIONS, MAX_STUDY_INDICATORS,
     MAX_FUNDING_SOURCE, MAX_COMMISSIONING_SOURCE,
@@ -33,6 +34,8 @@ def validate_submission(data):
     _require_string(data, "contactName", MAX_CONTACT_NAME, errors)
     _require_email(data, "contactEmail", errors)
     _require_string_array(data, "otherCenters", 1, errors)
+
+    _optional_string(data, "w3Bilateral", MAX_W3_BILATERAL, errors)
 
     # --- Section B: Study Classification ---
     _require_enum(data, "studyType", VALID_STUDY_TYPES, errors)

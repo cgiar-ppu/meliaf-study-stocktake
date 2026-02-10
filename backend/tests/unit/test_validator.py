@@ -69,6 +69,20 @@ class TestValidatorYesNoWithLink:
         validate_submission(valid_submission_body)
 
 
+class TestValidatorW3Bilateral:
+    def test_w3bilateral_optional(self, valid_submission_body):
+        # w3Bilateral not provided — should pass regardless of center
+        valid_submission_body.pop("w3Bilateral", None)
+        validate_submission(valid_submission_body)
+
+    def test_w3bilateral_too_long(self, valid_submission_body):
+        valid_submission_body["w3Bilateral"] = "x" * 501
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        fields = [e["field"] for e in exc_info.value.errors]
+        assert "w3Bilateral" in fields
+
+
 class TestValidatorStringLengths:
     def test_study_title_too_long(self, valid_submission_body):
         valid_submission_body["studyTitle"] = "x" * 501
