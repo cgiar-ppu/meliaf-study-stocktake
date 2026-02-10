@@ -58,7 +58,7 @@ export default function Introduction() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">Where the data is stored</h2>
             <p>
-              Data are stored in CG360, and the web application code is available on GitHub.
+              Data will be stored in CG360, and the web application code is available on GitHub.
             </p>
           </section>
 
