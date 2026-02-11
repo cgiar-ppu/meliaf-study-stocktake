@@ -83,6 +83,40 @@ class TestValidatorW3Bilateral:
         assert "w3Bilateral" in fields
 
 
+class TestValidatorRegionsCountries:
+    def test_study_regions_optional(self, valid_submission_body):
+        valid_submission_body.pop("studyRegions", None)
+        validate_submission(valid_submission_body)
+
+    def test_study_regions_accepted(self, valid_submission_body):
+        valid_submission_body["studyRegions"] = ["CWANA", "ESA"]
+        result = validate_submission(valid_submission_body)
+        assert result["studyRegions"] == ["CWANA", "ESA"]
+
+    def test_study_countries_optional(self, valid_submission_body):
+        valid_submission_body.pop("studyCountries", None)
+        validate_submission(valid_submission_body)
+
+    def test_study_countries_accepted(self, valid_submission_body):
+        valid_submission_body["studyCountries"] = ["KE", "TZ", "UG"]
+        result = validate_submission(valid_submission_body)
+        assert result["studyCountries"] == ["KE", "TZ", "UG"]
+
+    def test_study_regions_invalid_type(self, valid_submission_body):
+        valid_submission_body["studyRegions"] = "CWANA"
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        fields = [e["field"] for e in exc_info.value.errors]
+        assert "studyRegions" in fields
+
+    def test_study_countries_invalid_items(self, valid_submission_body):
+        valid_submission_body["studyCountries"] = [123, 456]
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        fields = [e["field"] for e in exc_info.value.errors]
+        assert "studyCountries" in fields
+
+
 class TestValidatorStringLengths:
     def test_study_title_too_long(self, valid_submission_body):
         valid_submission_body["studyTitle"] = "x" * 501

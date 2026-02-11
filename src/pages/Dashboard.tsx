@@ -93,6 +93,7 @@ import {
   PRIMARY_USER_OPTIONS,
 } from '@/types';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
+import { CGIAR_REGION_OPTIONS, CGIAR_COUNTRY_OPTIONS } from '@/data/cgiarGeography';
 
 // --- Lookup maps for enum → label ---
 
@@ -119,6 +120,8 @@ const primaryIndicatorLookup = buildLookup(
   PRIMARY_INDICATOR_GROUPS.flatMap((g) => g.options)
 );
 
+const regionLookup = buildLookup(CGIAR_REGION_OPTIONS);
+const countryLookup = buildLookup(CGIAR_COUNTRY_OPTIONS);
 const otherCentersLookup = buildLookup(OTHER_CENTERS_GROUPS.flatMap((g) => g.options));
 const primaryUserLookup = buildLookup(PRIMARY_USER_OPTIONS);
 const yesNoNaLookup = buildLookup(YES_NO_NA_OPTIONS);
@@ -165,6 +168,17 @@ function multiSelectFilter(
   return filterValue.includes(cellValue);
 }
 
+function arrayMultiSelectFilter(
+  row: { getValue: (id: string) => unknown },
+  columnId: string,
+  filterValue: string[]
+): boolean {
+  if (!filterValue || filterValue.length === 0) return true;
+  const cellValue = row.getValue(columnId);
+  if (!Array.isArray(cellValue)) return false;
+  return filterValue.some((f) => cellValue.includes(f));
+}
+
 // --- Column definitions ---
 
 const columns: ColumnDef<SubmissionItem, unknown>[] = [
@@ -200,6 +214,29 @@ const columns: ColumnDef<SubmissionItem, unknown>[] = [
     cell: ({ getValue }) => labelFor(geoScopeLookup, getValue()),
     meta: { filterType: 'multi-select', filterOptions: GEOGRAPHIC_SCOPE_OPTIONS } satisfies ColumnMeta,
     filterFn: multiSelectFilter,
+  },
+  {
+    accessorKey: 'studyRegions',
+    header: 'Region(s)',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (!Array.isArray(v) || v.length === 0) return '';
+      return v.map((r: string) => regionLookup[r] ?? r).join(', ');
+    },
+    meta: { filterType: 'multi-select', filterOptions: CGIAR_REGION_OPTIONS } satisfies ColumnMeta,
+    filterFn: arrayMultiSelectFilter,
+  },
+  {
+    accessorKey: 'studyCountries',
+    header: 'Country(ies)',
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (!Array.isArray(v) || v.length === 0) return '';
+      const text = v.map((c: string) => countryLookup[c] ?? c).join(', ');
+      return <TruncatedCell text={text} />;
+    },
+    meta: { filterType: 'multi-select', filterOptions: CGIAR_COUNTRY_OPTIONS } satisfies ColumnMeta,
+    filterFn: arrayMultiSelectFilter,
   },
   {
     accessorKey: 'resultLevel',
@@ -434,6 +471,8 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
   studyType: true,
   timing: true,
   geographicScope: true,
+  studyRegions: true,
+  studyCountries: true,
   resultLevel: true,
   startDate: true,
   contactName: true,
@@ -470,7 +509,7 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
 
 const COLUMN_SECTIONS: { label: string; columns: string[] }[] = [
   { label: 'A — Basic Information',    columns: ['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail', 'otherCenters'] },
-  { label: 'B — Study Classification', columns: ['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'] },
+  { label: 'B — Study Classification', columns: ['studyType', 'timing', 'analyticalScope', 'geographicScope', 'studyRegions', 'studyCountries', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'] },
   { label: 'C — Research Details',     columns: ['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'] },
   { label: 'D — Timeline & Status',    columns: ['startDate', 'expectedEndDate', 'dataCollectionStatus', 'analysisStatus'] },
   { label: 'E — Funding & Resources',  columns: ['funded', 'fundingSource', 'totalCostUSD', 'proposalAvailable'] },
@@ -490,6 +529,14 @@ const exportFormatters: Record<string, (value: unknown) => string> = {
   studyType: (v) => labelFor(studyTypeLookup, v),
   timing: (v) => labelFor(timingLookup, v),
   geographicScope: (v) => labelFor(geoScopeLookup, v),
+  studyRegions: (v) => {
+    if (!Array.isArray(v) || v.length === 0) return '';
+    return v.map((r: string) => regionLookup[r] ?? r).join(', ');
+  },
+  studyCountries: (v) => {
+    if (!Array.isArray(v) || v.length === 0) return '';
+    return v.map((c: string) => countryLookup[c] ?? c).join(', ');
+  },
   resultLevel: (v) => labelFor(resultLevelLookup, v),
   analyticalScope: (v) => labelFor(analyticalScopeLookup, v),
   causalityMode: (v) => labelFor(causalityModeLookup, v),

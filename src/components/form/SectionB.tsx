@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { memo, useEffect, useRef } from 'react';
+import { UseFormReturn, useWatch } from 'react-hook-form';
 import { StudyFormData } from '@/lib/formSchema';
 import {
   FormField,
@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { MultiSelect } from './MultiSelect';
 import {
   STUDY_TYPE_OPTIONS,
   TIMING_OPTIONS,
@@ -27,12 +29,54 @@ import {
   METHOD_CLASS_OPTIONS,
   PRIMARY_INDICATOR_GROUPS,
 } from '@/types';
+import {
+  CGIAR_REGION_OPTIONS,
+  CGIAR_COUNTRY_OPTIONS,
+  regionsForCountries,
+} from '@/data/cgiarGeography';
+
+const REGION_GROUPS = [{ label: 'CGIAR Regions', options: CGIAR_REGION_OPTIONS }];
+const COUNTRY_GROUPS = [{ label: 'Countries', options: CGIAR_COUNTRY_OPTIONS }];
+
+const regionLabelMap: Record<string, string> = {};
+for (const r of CGIAR_REGION_OPTIONS) regionLabelMap[r.value] = r.label;
 
 interface SectionBProps {
   form: UseFormReturn<StudyFormData>;
 }
 
 export const SectionB = memo(function SectionB({ form }: SectionBProps) {
+  const geographicScope = useWatch({ control: form.control, name: 'geographicScope' });
+  const studyCountries = useWatch({ control: form.control, name: 'studyCountries' }) ?? [];
+  const studyRegions = useWatch({ control: form.control, name: 'studyRegions' }) ?? [];
+  const prevScopeRef = useRef(geographicScope);
+
+  // Clear region/country fields when geographic scope changes away from relevant values
+  useEffect(() => {
+    const prev = prevScopeRef.current;
+    prevScopeRef.current = geographicScope;
+    if (prev === geographicScope) return;
+
+    if (geographicScope !== 'regional' && geographicScope !== 'national') {
+      form.setValue('studyRegions', [], { shouldDirty: true });
+      form.setValue('studyCountries', [], { shouldDirty: true });
+    } else if (geographicScope === 'regional') {
+      form.setValue('studyCountries', [], { shouldDirty: true });
+    } else if (geographicScope === 'national') {
+      form.setValue('studyRegions', [], { shouldDirty: true });
+    }
+  }, [geographicScope, form]);
+
+  // Auto-populate regions from selected countries when scope is national
+  useEffect(() => {
+    if (geographicScope !== 'national') return;
+    const derived = regionsForCountries(studyCountries);
+    const current = form.getValues('studyRegions') ?? [];
+    if (derived.join(',') !== current.join(',')) {
+      form.setValue('studyRegions', derived, { shouldDirty: true });
+    }
+  }, [geographicScope, studyCountries, form]);
+
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       {/* Study Type */}
@@ -50,9 +94,9 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
               </FormControl>
               <SelectContent className="max-h-80 w-[var(--radix-select-trigger-width)]">
                 {STUDY_TYPE_OPTIONS.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
-                    value={option.value} 
+                  <SelectItem
+                    key={option.value}
+                    value={option.value}
                     textValue={option.label}
                     className="py-3 whitespace-normal"
                   >
@@ -85,8 +129,8 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
               </FormControl>
               <SelectContent className="w-[var(--radix-select-trigger-width)]">
                 {TIMING_OPTIONS.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     textValue={option.label}
                     className="py-3 whitespace-normal"
@@ -147,8 +191,8 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
               </FormControl>
               <SelectContent className="w-[var(--radix-select-trigger-width)]">
                 {GEOGRAPHIC_SCOPE_OPTIONS.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     textValue={option.label}
                     className={option.description ? "py-3 whitespace-normal" : ""}
@@ -172,6 +216,66 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
         )}
       />
 
+      {/* Region(s) — editable when scope is regional */}
+      {geographicScope === 'regional' && (
+        <FormField
+          control={form.control}
+          name="studyRegions"
+          render={({ field }) => (
+            <FormItem className="sm:col-span-2">
+              <FormLabel>Region(s)</FormLabel>
+              <FormControl>
+                <MultiSelect
+                  groups={REGION_GROUPS}
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  placeholder="Select regions..."
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {/* Country(ies) — editable when scope is national */}
+      {geographicScope === 'national' && (
+        <>
+          <FormField
+            control={form.control}
+            name="studyCountries"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Country(ies)</FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    groups={COUNTRY_GROUPS}
+                    value={field.value ?? []}
+                    onChange={field.onChange}
+                    placeholder="Select countries..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Region(s) — read-only, auto-populated from countries */}
+          {studyRegions.length > 0 && (
+            <div className="sm:col-span-2 space-y-1.5">
+              <span className="text-sm font-medium leading-none">Region(s)</span>
+              <div className="flex flex-wrap gap-1">
+                {studyRegions.map((r) => (
+                  <Badge key={r} variant="secondary">
+                    {regionLabelMap[r] ?? r}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Auto-populated from selected countries</p>
+            </div>
+          )}
+        </>
+      )}
+
       {/* Result Level */}
       <FormField
         control={form.control}
@@ -187,8 +291,8 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
               </FormControl>
               <SelectContent className="w-[var(--radix-select-trigger-width)]">
                 {RESULT_LEVEL_OPTIONS.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     textValue={option.label}
                     className="py-3 whitespace-normal"
@@ -223,8 +327,8 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
               </FormControl>
               <SelectContent className="w-[var(--radix-select-trigger-width)]">
                 {CAUSALITY_MODE_OPTIONS.map((option) => (
-                  <SelectItem 
-                    key={option.value} 
+                  <SelectItem
+                    key={option.value}
                     value={option.value}
                     textValue={option.label}
                     className="py-3 whitespace-normal"

@@ -49,6 +49,8 @@ VALID_PRIMARY_INDICATORS = {
     "Other Output",
 }
 
+VALID_CGIAR_REGIONS = {"CWANA", "LAC", "WCA", "ESA", "SA", "SEA", "EUR", "NOA"}
+
 VALID_SUBMISSION_STATUSES = {"active", "superseded", "archived"}
 
 # Section C is required when causalityMode or methodClass match these

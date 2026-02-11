@@ -33,6 +33,8 @@ export interface StudySubmission {
   timing: TimingType;
   analyticalScope: AnalyticalScopeType;
   geographicScope: GeographicScopeType;
+  studyRegions?: string[];
+  studyCountries?: string[];
   resultLevel: ResultLevelType;
   causalityMode: CausalityModeType;
   methodClass: MethodClassType;

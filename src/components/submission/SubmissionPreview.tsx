@@ -14,6 +14,12 @@ import {
   YES_NO_NA_OPTIONS,
   PRIMARY_USER_OPTIONS,
 } from '@/types';
+import { CGIAR_REGION_OPTIONS, CGIAR_COUNTRY_OPTIONS } from '@/data/cgiarGeography';
+
+const regionLookup: Record<string, string> = {};
+for (const r of CGIAR_REGION_OPTIONS) regionLookup[r.value] = r.label;
+const countryLookup: Record<string, string> = {};
+for (const c of CGIAR_COUNTRY_OPTIONS) countryLookup[c.value] = c.label;
 
 function resolveLabel(
   options: { value: string; label: string; description?: string }[],
@@ -120,6 +126,24 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
         <PreviewField label="Geographic Scope">
           {resolveLabel(GEOGRAPHIC_SCOPE_OPTIONS, s.geographicScope)}
         </PreviewField>
+        {Array.isArray(s.studyRegions) && (s.studyRegions as string[]).length > 0 && (
+          <PreviewField label="Region(s)">
+            <div className="flex flex-wrap gap-1">
+              {(s.studyRegions as string[]).map((r) => (
+                <Badge key={r} variant="secondary">{regionLookup[r] ?? r}</Badge>
+              ))}
+            </div>
+          </PreviewField>
+        )}
+        {Array.isArray(s.studyCountries) && (s.studyCountries as string[]).length > 0 && (
+          <PreviewField label="Country(ies)">
+            <div className="flex flex-wrap gap-1">
+              {(s.studyCountries as string[]).map((c) => (
+                <Badge key={c} variant="secondary">{countryLookup[c] ?? c}</Badge>
+              ))}
+            </div>
+          </PreviewField>
+        )}
         <PreviewField label="Result Level">
           {resolveLabel(RESULT_LEVEL_OPTIONS, s.resultLevel)}
         </PreviewField>
