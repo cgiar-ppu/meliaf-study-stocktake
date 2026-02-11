@@ -34,7 +34,7 @@ export default function SignIn() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { signIn, isAuthenticated, isLoading, toggleDevMode, devModeEnabled } = useAuth();
+  const { signIn, signInWithSSO, isAuthenticated, isLoading, ssoAvailable, toggleDevMode, devModeEnabled } = useAuth();
   const { toast } = useToast();
 
   const [email, setEmail] = useState('');
@@ -110,6 +110,44 @@ export default function SignIn() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* SSO Sign-in Button */}
+            {ssoAvailable && (
+              <div className="mb-4">
+                <Button
+                  type="button"
+                  className="w-full bg-[#006644] hover:bg-[#005533] text-white"
+                  onClick={async () => {
+                    try {
+                      setError('');
+                      await signInWithSSO();
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'SSO sign-in failed. Please try again.');
+                    }
+                  }}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Redirecting...
+                    </>
+                  ) : (
+                    'Sign in with CGIAR SSO'
+                  )}
+                </Button>
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-card px-2 text-muted-foreground">
+                      Or sign in with email
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {confirmed && (
                 <Alert className="border-success/30 bg-success/5">

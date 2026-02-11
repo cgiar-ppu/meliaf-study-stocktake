@@ -5,11 +5,13 @@ import {
   signOut as amplifySignOut,
   resetPassword as amplifyResetPassword,
   confirmResetPassword as amplifyConfirmResetPassword,
+  signInWithRedirect,
   getCurrentUser,
   fetchAuthSession,
   fetchUserAttributes,
 } from 'aws-amplify/auth';
-import { isCognitoConfigured } from '@/lib/amplify';
+import { Hub } from 'aws-amplify/utils';
+import { isCognitoConfigured, isSSOConfigured } from '@/lib/amplify';
 import type { User, AuthState } from '@/types';
 
 const { createContext, useContext, useState, useCallback, useEffect } = React;
@@ -35,11 +37,13 @@ const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
 interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithSSO: () => Promise<void>;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   confirmPasswordReset: (email: string, code: string, newPassword: string) => Promise<void>;
   getIdToken: () => Promise<string | null>;
+  ssoAvailable: boolean;
   devModeEnabled: boolean;
   toggleDevMode: () => void;
 }
@@ -53,6 +57,37 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const canUseDevMode = import.meta.env.DEV && !isCognitoConfigured;
 const autoAuth = isDemoMode || canUseDevMode;
 const autoAuthUser = isDemoMode ? DEMO_USER : MOCK_USER;
+
+/**
+ * Load the current Cognito user as a User object.
+ * Tries fetchUserAttributes first (works for email/password sign-in).
+ * Falls back to ID token claims for OAuth/SSO flows, where the access token
+ * lacks the aws.cognito.signin.user.admin scope needed by GetUser API.
+ */
+async function loadCognitoUser(): Promise<User> {
+  const { userId } = await getCurrentUser();
+
+  // Try the GetUser API first (requires aws.cognito.signin.user.admin scope)
+  try {
+    const attributes = await fetchUserAttributes();
+    return {
+      id: userId,
+      email: attributes.email ?? '',
+      name: attributes.name,
+      createdAt: undefined,
+    };
+  } catch {
+    // OAuth/SSO flows don't include the admin scope — read from ID token instead
+    const session = await fetchAuthSession();
+    const claims = session.tokens?.idToken?.payload;
+    return {
+      id: userId,
+      email: (claims?.email as string) ?? '',
+      name: (claims?.name as string) ?? undefined,
+      createdAt: undefined,
+    };
+  }
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [devModeEnabled, setDevModeEnabled] = useState(canUseDevMode);
@@ -84,20 +119,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // If we're returning from an OAuth redirect (?code= in the URL),
+    // skip the session check — Amplify will process the callback internally
+    // and fire a Hub event which the listener below will handle.
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('code') && params.has('state')) {
+      return; // Let Hub listener handle the OAuth callback
+    }
+
     const checkSession = async () => {
       try {
-        const cognitoUser = await getCurrentUser();
-        const attributes = await fetchUserAttributes();
-        setAuthState({
-          user: {
-            id: cognitoUser.userId,
-            email: attributes.email ?? '',
-            name: attributes.name,
-            createdAt: undefined,
-          },
-          isAuthenticated: true,
-          isLoading: false,
-        });
+        const user = await loadCognitoUser();
+        setAuthState({ user, isAuthenticated: true, isLoading: false });
       } catch {
         setAuthState({ user: null, isAuthenticated: false, isLoading: false });
       }
@@ -105,6 +138,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     checkSession();
   }, [devModeEnabled]);
+
+  // Listen for OAuth redirect events (SSO callback)
+  useEffect(() => {
+    if (!isSSOConfigured) return;
+
+    const unsubscribe = Hub.listen('auth', async ({ payload }) => {
+      if (payload.event === 'signInWithRedirect') {
+        try {
+          const user = await loadCognitoUser();
+          setAuthState({ user, isAuthenticated: true, isLoading: false });
+        } catch {
+          setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+        }
+      }
+      if (payload.event === 'signInWithRedirect_failure') {
+        setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Sign in with Azure AD SSO
+  const signInWithSSO = useCallback(async () => {
+    setAuthState((prev) => ({ ...prev, isLoading: true }));
+    try {
+      await signInWithRedirect({ provider: { custom: 'AzureAD' } });
+    } catch (error) {
+      // If there's already a signed-in user (e.g. from a previous SSO callback),
+      // try to recover the session instead of showing an error.
+      if (error instanceof Error && error.message.toLowerCase().includes('already')) {
+        try {
+          const user = await loadCognitoUser();
+          setAuthState({ user, isAuthenticated: true, isLoading: false });
+          return; // Session recovered — redirect will happen via the useEffect in SignIn page
+        } catch {
+          // Session is stale/broken — sign out to clear it so the next attempt works
+          await amplifySignOut().catch(() => {});
+          setAuthState({ user: null, isAuthenticated: false, isLoading: false });
+          throw new Error('Previous session was cleared. Please try SSO again.');
+        }
+      }
+      setAuthState((prev) => ({ ...prev, isLoading: false }));
+      throw error;
+    }
+  }, []);
 
   // Sign in with Cognito
   const signIn = useCallback(async (email: string, password: string) => {
@@ -116,32 +195,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const cognitoUser = await getCurrentUser();
-      const attributes = await fetchUserAttributes();
-      setAuthState({
-        user: {
-          id: cognitoUser.userId,
-          email: attributes.email ?? email,
-          name: attributes.name,
-        },
-        isAuthenticated: true,
-        isLoading: false,
-      });
+      const user = await loadCognitoUser();
+      setAuthState({ user, isAuthenticated: true, isLoading: false });
     } catch (error) {
       // If already signed in, try to load the existing session
       if (error instanceof Error && error.name === 'UserAlreadyAuthenticatedException') {
         try {
-          const cognitoUser = await getCurrentUser();
-          const attributes = await fetchUserAttributes();
-          setAuthState({
-            user: {
-              id: cognitoUser.userId,
-              email: attributes.email ?? email,
-              name: attributes.name,
-            },
-            isAuthenticated: true,
-            isLoading: false,
-          });
+          const user = await loadCognitoUser();
+          setAuthState({ user, isAuthenticated: true, isLoading: false });
           return;
         } catch {
           // Session is stale/invalid — sign out to clear it so the next attempt works
@@ -219,11 +280,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         ...authState,
         signIn,
+        signInWithSSO,
         signUp,
         signOut,
         resetPassword: resetPasswordFn,
         confirmPasswordReset,
         getIdToken,
+        ssoAvailable: isSSOConfigured,
         devModeEnabled,
         toggleDevMode,
       }}

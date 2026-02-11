@@ -40,6 +40,14 @@ Parameters:
     Type: String
     Default: "https://meliaf-study-stocktake.synapsis-analytics.com"
     Description: Frontend URL for Cognito callback/logout URLs
+  AzureADClientId:
+    Type: String
+    Default: "aebb477b-dbd5-4112-b0a4-810956065fdc"
+    Description: Azure AD App Registration client ID for OIDC SSO
+  AzureADTenantId:
+    Type: String
+    Default: "6afa0e00-fa14-40b7-8a2e-22a7f8c357d5"
+    Description: Azure AD Directory (tenant) ID
 Resources:
   # --- API Gateway ---
   MeliafApi:
@@ -54,8 +62,7 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       Auth:
-        # Demo mode: DefaultAuthorizer removed to allow unauthenticated access.
-        # Revert by adding: DefaultAuthorizer: CognitoAuthorizer
+        DefaultAuthorizer: CognitoAuthorizer
         AddDefaultAuthorizerToCorsPreflight: false
         Authorizers:
           CognitoAuthorizer:
@@ -106,8 +113,29 @@ Resources:
       Domain: !Sub meliaf-${Environment}
       UserPoolId: !Ref MeliafUserPool
 
+  # --- Azure AD OIDC Identity Provider ---
+  AzureADIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Properties:
+      UserPoolId: !Ref MeliafUserPool
+      ProviderName: AzureAD
+      ProviderType: OIDC
+      ProviderDetails:
+        client_id: !Ref AzureADClientId
+        client_secret: '{{resolve:secretsmanager:meliaf/azure-ad-client-secret:SecretString:client_secret}}'
+        oidc_issuer: !Sub "https://login.microsoftonline.com/${AzureADTenantId}/v2.0"
+        attributes_request_method: GET
+        authorize_scopes: "openid email profile"
+      AttributeMapping:
+        email: email
+        name: name
+        username: sub
+      IdpIdentifiers:
+        - AzureAD
+
   MeliafUserPoolClient:
     Type: AWS::Cognito::UserPoolClient
+    DependsOn: AzureADIdentityProvider
     Properties:
       ClientName: !Sub meliaf-web-${Environment}
       UserPoolId: !Ref MeliafUserPool
@@ -116,12 +144,22 @@ Resources:
         - ALLOW_USER_SRP_AUTH
         - ALLOW_REFRESH_TOKEN_AUTH
       PreventUserExistenceErrors: ENABLED
+      AllowedOAuthFlows:
+        - code
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - openid
+        - email
+        - profile
       CallbackURLs:
         - !Ref FrontendUrl
+        - http://localhost:8080
       LogoutURLs:
         - !Ref FrontendUrl
+        - http://localhost:8080
       SupportedIdentityProviders:
         - COGNITO
+        - AzureAD
 
   # --- DynamoDB ---
   SubmissionsTable:
@@ -343,6 +381,8 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /health
             Method: get
+            Auth:
+              Authorizer: NONE
 
   HelloFunction:
     Type: AWS::Serverless::Function
@@ -358,6 +398,8 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /hello
             Method: get
+            Auth:
+              Authorizer: NONE
 
   # --- Submission CRUD Functions ---
   CreateSubmissionFunction:
@@ -504,3 +546,6 @@ Outputs:
   ConfirmSignupUrl:
     Description: Lambda Function URL for email confirmation
     Value: !GetAtt ConfirmSignupFunctionUrl.FunctionUrl
+  CognitoHostedUIDomain:
+    Description: Cognito Hosted UI domain for OAuth redirects
+    Value: !Sub "https://meliaf-${Environment}.auth.${AWS::Region}.amazoncognito.com"

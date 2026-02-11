@@ -31,3 +31,8 @@ backend/.aws-sam/
 backend/.pytest_cache/
 **/__pycache__/
 *.pyc
+
+.env.development
+.env.production
+.env.development.*
+.env.production.*   
