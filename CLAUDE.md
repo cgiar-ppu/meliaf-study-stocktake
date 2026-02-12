@@ -27,9 +27,11 @@ React Router with lazy-loaded pages. `ProtectedRoute` checks auth state (bypasse
 
 | Route | Page | Protected |
 |-------|------|-----------|
-| `/` | MySubmissions | Yes |
+| `/` | Introduction | Yes |
+| `/submissions` | MySubmissions | Yes |
 | `/dashboard` | Dashboard | Yes |
 | `/submit` | SubmitStudy | Yes |
+| `/submit/:submissionId` | EditSubmission | Yes |
 | `/signin`, `/signup`, `/forgot-password`, `/confirm-email` | Auth pages | No |
 
 ### Multi-Section Study Form
@@ -37,7 +39,7 @@ React Router with lazy-loaded pages. `ProtectedRoute` checks auth state (bypasse
 The core feature is a multi-section form (`src/components/form/StudyForm.tsx`) for submitting research studies. It has 6 collapsible sections (A–F):
 
 - **A**: Basic Information (lead center, contact)
-- **B**: Study Classification (type, timing, scope, methodology)
+- **B**: Study Classification (type, timing, scope, methodology, geographic fields)
 - **C**: Research Details — **conditionally shown** only when `causalityMode === 'c2_causal'` or `methodClass` is quantitative/experimental/mixed
 - **D**: Timeline & Status
 - **E**: Funding & Resources
@@ -45,15 +47,27 @@ The core feature is a multi-section form (`src/components/form/StudyForm.tsx`) f
 
 Each section is a memoized component (`React.memo`). Form state is managed by React Hook Form with Zod validation (`src/lib/formSchema.ts`). Drafts auto-save to localStorage via `useAutoSave` hook (2-second debounce).
 
+### Geographic Scope Cascading (Section B)
+
+Geographic fields in Section B show/hide and auto-populate based on the selected `geographicScope`:
+
+| Scope | Province(s)/State(s) | Country(ies) | Region(s) |
+|---|---|---|---|
+| Global | Hidden | Hidden | Hidden |
+| Regional | Hidden | Hidden | Editable multi-select |
+| National | Hidden | Editable multi-select | Read-only (auto from countries) |
+| Sub-national | Editable search-first multi-select | Read-only (auto from provinces) | Read-only (auto from countries) |
+| Site-specific | Hidden | Hidden | Hidden |
+
+Key files: `SectionB.tsx`, `cgiarGeography.ts` (8 CGIAR regions, 249 countries, `COUNTRY_TO_REGION` mapping, `regionsForCountries()`), `subnationalUnits.ts` (5,020 ISO 3166-2 entries, `countriesForSubnational()`). The `FilteredMultiSelect` component is used for the large subnational list — it only renders options matching the search query (max 100) to avoid DOM performance issues.
+
 ### Type System
 
 `src/types/index.ts` defines enum types, dropdown option arrays, and the `StudySubmission` interface. All enum values are co-located here and mirrored in `backend/functions/shared/constants.py`.
 
 ### Auth (Frontend)
 
-`src/contexts/AuthContext.tsx` provides auth state via React Context backed by AWS Cognito (Amplify v6). Key methods: `signIn`, `signUp`, `signOut`, `resetPassword`, `confirmPasswordReset`, `getIdToken`. Dev mode (mock user `dev-user-001`) is gated behind `import.meta.env.DEV` and only activates when Cognito env vars are not set. `src/lib/amplify.ts` initialises Amplify from `VITE_COGNITO_USER_POOL_ID` and `VITE_COGNITO_CLIENT_ID`. `src/lib/api.ts` automatically injects `Authorization: Bearer <idToken>` on every request when Cognito is configured.
-
-**Demo mode** (currently active): `VITE_DEMO_MODE=true` env var auto-authenticates all visitors as `demo-user` / `demo@cgiar.org` without Cognito. Works in production builds — not gated behind `import.meta.env.DEV`. `getIdToken()` returns null; backend `identity.py` falls back to `dev-user-001`.
+`src/contexts/AuthContext.tsx` provides auth state via React Context backed by AWS Cognito (Amplify v6) with Azure AD SSO. Key methods: `signIn`, `signInWithSSO`, `signUp`, `signOut`, `resetPassword`, `confirmPasswordReset`, `getIdToken`. Dev mode (mock user `dev-user-001`) is gated behind `import.meta.env.DEV` and only activates when Cognito env vars are not set. `src/lib/amplify.ts` initialises Amplify from `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`, and `VITE_COGNITO_DOMAIN` (required for SSO OAuth flow). `src/lib/api.ts` automatically injects `Authorization: Bearer <idToken>` on every request when Cognito is configured. `isSSOConfigured` (exported from `amplify.ts`) is true when `VITE_COGNITO_DOMAIN` is set, enabling the "Sign in with Azure AD" button on the sign-in page.
 
 ### Data Layer
 
@@ -61,7 +75,7 @@ Each section is a memoized component (`React.memo`). Form state is managed by Re
 
 ### UI Components
 
-`src/components/ui/` contains shadcn/ui components. Custom form components in `src/components/form/` include `TagInput` (array fields), `YesNoLinkField` (yes/no with conditional URL), `FormSection` (collapsible wrapper with completion indicators), and `FormProgress`.
+`src/components/ui/` contains shadcn/ui components. Custom form components in `src/components/form/` include `TagInput` (array fields), `YesNoLinkField` (yes/no with conditional URL), `FormSection` (collapsible wrapper with completion indicators), `FormProgress`, `MultiSelect` (grouped multi-select for small option sets), and `FilteredMultiSelect` (search-first variant for large option sets like subnational units).
 
 ### Styling
 
@@ -100,8 +114,10 @@ pytest tests/ -v             # Run backend unit tests
 | GET | /hello | hello | Hello stub |
 | POST | /submissions | create_submission | Create new submission (v1, status=active) |
 | GET | /submissions | list_submissions | List user's submissions (filter by ?status=) |
+| GET | /submissions/all | list_all_submissions | List all submissions across all users |
 | PUT | /submissions/{id} | update_submission | New version, marks previous as superseded |
 | DELETE | /submissions/{id} | delete_submission | Soft delete (new version with status=archived) |
+| POST | /submissions/{id}/restore | restore_submission | Restore (unarchive) a submission |
 | GET | /submissions/{id}/history | get_submission_history | All versions of a submission |
 
 ### DynamoDB Design
@@ -115,58 +131,63 @@ Append-only / event-sourced pattern — submissions are never updated in place. 
 
 ### Auth (Backend)
 
-Cognito User Pool with email sign-up, link-based email confirmation, and a JWT authorizer on API Gateway. `functions/shared/identity.py` extracts `sub` and `email` from `event.requestContext.authorizer.claims`. Falls back to dev user in dev/test environments when no claims present. Pre Sign-Up Lambda (`functions/cognito_triggers/pre_signup.py`) validates email domains (configurable via `AllowedEmailDomains` parameter, default: `cgiar.org,synapsis-analytics.com`). Post Confirmation Lambda (`functions/cognito_triggers/post_confirmation.py`) writes user entities to `meliaf-users-{env}` DynamoDB table.
+Cognito User Pool with email sign-up, code-based email confirmation, Azure AD SSO (OIDC), and a JWT authorizer on API Gateway. `functions/shared/identity.py` extracts `sub` and `email` from `event.requestContext.authorizer.claims`. Falls back to dev user in dev/test environments when no claims present. Pre Sign-Up Lambda (`functions/cognito_triggers/pre_signup.py`) validates email domains (configurable via `AllowedEmailDomains` parameter, default: `cgiar.org,synapsis-analytics.com`). Post Confirmation Lambda (`functions/cognito_triggers/post_confirmation.py`) writes user entities to `meliaf-users-{env}` DynamoDB table. Custom Message Lambda (`functions/cognito_triggers/custom_message.py`) provides branded email templates for sign-up confirmation and password reset.
 
-**Demo mode** (currently active): `DefaultAuthorizer` is removed from the API `Auth` block in `template.yaml`, so all endpoints accept unauthenticated requests. `identity.py` falls back to `dev-user-001` in the dev environment. The `CognitoAuthorizer` remains defined but unused.
+**Azure AD SSO**: Configured as an OIDC identity provider on the Cognito User Pool (`AzureADIdentityProvider` in `template.yaml`). The client secret is stored in AWS Secrets Manager (`meliaf/azure-ad-client-secret`) and resolved via CloudFormation dynamic reference. Azure AD tenant/client IDs are template parameters. Cognito acts as the identity broker — it issues its own JWTs regardless of sign-in method, so the `CognitoAuthorizer` works for both email/password and SSO users.
 
 ### CI/CD
 
 **Backend**: GitHub Actions (`.github/workflows/deploy-backend.yml`) deploys on push to `main` when `backend/` files change. The workflow validates the template, runs tests (with moto for DynamoDB mocking), then deploys to dev with a smoke test on `/health`. Requires `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` as GitHub secrets.
 
-**Frontend**: AWS Amplify Hosting auto-deploys from the `main` branch on every push. The following `VITE_` environment variables must be set in the Amplify console (App settings → Environment variables): `VITE_API_URL`, `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`. These are **not** picked up from `.env.development` during production builds.
+**Frontend**: AWS Amplify Hosting auto-deploys from the `main` branch on every push. The following `VITE_` environment variables must be set in the Amplify console (App settings → Environment variables): `VITE_API_URL`, `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`, `VITE_COGNITO_DOMAIN`. These are **not** picked up from `.env.development` during production builds.
 
 ### Smoke Test Script
 
 `backend/test-api.sh` — runs the full CRUD lifecycle against the deployed API (create → list → update → history → delete → verify). Usage: `./backend/test-api.sh`
 
+## Current Status
+
+All core functional features are implemented and deployed:
+
+- **Auth**: Cognito User Pool with email/password sign-up, branded email confirmation, and Azure AD SSO (OIDC)
+- **Study form**: Multi-section form (A–F) with auto-save, create and edit modes
+- **My Submissions**: List view with preview sheet, archive/unarchive with confirmation dialog
+- **Dashboard**: Full data table with filtering, sorting, column reordering, export (Excel/CSV/JSON), portfolio charts, and glossary
+- **Frontend hosting**: Amplify Hosting on custom domain (`meliaf-study-stocktake.synapsis-analytics.com`)
+- **CI/CD**: GitHub Actions for backend (SAM), Amplify auto-deploy for frontend
+
 ## Remaining Work
-
-### Functional (in priority order)
-
-1. ~~**Cognito auth**~~ — Done. User pool, JWT authorizer, Pre Sign-Up domain validation, Post Confirmation user entity, Amplify v6 frontend, email confirmation flow.
-2. **Dashboard page** — Replace placeholder with real data from ByStatus GSI (counts by status, study type, center)
-3. **View/Edit submission** — Detail page for a submission, route PUT endpoint through the form for editing
-4. **Delete from UI** — Delete button in MySubmissions triggering the DELETE endpoint
 
 ### Infrastructure / production hardening
 
-5. ~~**Frontend hosting**~~ — Done. Amplify Hosting auto-deploys from `main` branch.
-6. ~~**Custom domain**~~ — Done. `meliaf-study-stocktake.synapsis-analytics.com` for frontend.
-7. **WAF** — Web Application Firewall on API Gateway
-8. **Monitoring** — CloudWatch dashboards, alarms, error alerting
-9. **Multi-environment** — Staging/prod deployments (CI/CD ready, needs env config + promotion workflow)
-10. **API throttling** — Rate limiting on API Gateway
+1. **WAF** — Add AWS WAF to API Gateway to protect against common web exploits (SQL injection, XSS, bot traffic, rate-based rules)
+2. **Monitoring** — CloudWatch dashboards for Lambda errors/latency, DynamoDB throttling, API Gateway 4xx/5xx rates; CloudWatch Alarms with SNS alerting
+3. **Multi-environment** — Staging and prod deployments; CI/CD already supports `--config-env staging` but needs env-specific config, Amplify branches, and a promotion workflow (dev → staging → prod)
+4. **API throttling** — Usage plans and throttling settings on API Gateway (requests per second, burst limits) to prevent abuse
 
-## Demo Mode (temporary — will be replaced by SSO)
+## Demo Mode (available but inactive)
 
-Currently active. Bypasses Cognito auth on both frontend and backend so demo users can access the app without login.
+Demo mode exists in the codebase but is **not currently active**. Auth is handled by Cognito + Azure AD SSO.
 
-**What's changed:**
-- **Frontend** (`src/contexts/AuthContext.tsx`): `VITE_DEMO_MODE=true` env var auto-authenticates as `demo-user`. Set in Amplify console.
-- **Backend** (`backend/template.yaml`): `DefaultAuthorizer` removed from API `Auth` block; `/health` and `/hello` `Auth: Authorizer: NONE` overrides also removed (unnecessary without a default).
+**How it works:** `VITE_DEMO_MODE=true` env var auto-authenticates all visitors as `demo-user` / `demo@cgiar.org` without Cognito. Works in production builds — not gated behind `import.meta.env.DEV`. When active, `getIdToken()` returns null; backend `identity.py` falls back to `dev-user-001`.
 
-**Reverting to full Cognito auth:**
-1. Remove `VITE_DEMO_MODE` from Amplify console env vars; restore `VITE_COGNITO_USER_POOL_ID` and `VITE_COGNITO_CLIENT_ID`
-2. In `backend/template.yaml`, restore the API Auth block:
-   ```yaml
-   Auth:
-     DefaultAuthorizer: CognitoAuthorizer
-     AddDefaultAuthorizerToCorsPreflight: false
-     Authorizers:
-       CognitoAuthorizer:
-         UserPoolArn: !GetAtt MeliafUserPool.Arn
-   ```
-3. Re-add `Auth: Authorizer: NONE` to HealthFunction and HelloFunction events
-4. Deploy both frontend (push to main) and backend (`sam build && sam deploy`)
+**To re-enable demo mode:**
+1. Set `VITE_DEMO_MODE=true` in Amplify console env vars
+2. In `backend/template.yaml`, remove `DefaultAuthorizer: CognitoAuthorizer` from the API `Auth` block, and remove `Auth: Authorizer: NONE` from HealthFunction/HelloFunction events
+3. Deploy both frontend (push to main) and backend (`sam build && sam deploy`)
+
+**To disable demo mode** (current state):
+1. Remove `VITE_DEMO_MODE` (or set to `false`) in Amplify console; ensure `VITE_COGNITO_USER_POOL_ID`, `VITE_COGNITO_CLIENT_ID`, and `VITE_COGNITO_DOMAIN` are set
+2. Ensure `DefaultAuthorizer: CognitoAuthorizer` is present in `template.yaml` API Auth block
+3. Deploy both frontend and backend
 
 **SAM caveat:** `DefaultAuthorizer` must be a literal string — SAM processes the Auth block before CloudFormation resolves intrinsic functions, so `!If` / `Fn::If` cannot be used there. `Authorizer: NONE` on individual events is only valid when a `DefaultAuthorizer` is set.
+
+## Additional Documentation
+
+See `docs/` for detailed reference documentation:
+
+- [`docs/data-model.md`](docs/data-model.md) — Complete study form schema with all fields, types, and validation rules
+- [`docs/api.md`](docs/api.md) — REST API endpoints, request/response formats, and error handling
+- [`docs/authentication.md`](docs/authentication.md) — Cognito + Azure AD SSO auth flow, tokens, and configuration
+- [`docs/infrastructure.md`](docs/infrastructure.md) — AWS resource topology, DynamoDB design, and deployment
