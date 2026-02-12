@@ -35,6 +35,7 @@ export interface StudySubmission {
   geographicScope: GeographicScopeType;
   studyRegions?: string[];
   studyCountries?: string[];
+  studySubnational?: string[];
   resultLevel: ResultLevelType;
   causalityMode: CausalityModeType;
   methodClass: MethodClassType;

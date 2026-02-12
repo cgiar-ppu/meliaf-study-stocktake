@@ -73,6 +73,7 @@ export const studyFormSchema = z.object({
   ], { required_error: 'Geographic scope is required' }),
   studyRegions: z.array(z.string()).optional().default([]),
   studyCountries: z.array(z.string()).optional().default([]),
+  studySubnational: z.array(z.string()).optional().default([]),
   resultLevel: z.enum(['output', 'outcome', 'impact'], { required_error: 'Result level is required' }),
   causalityMode: z.enum(['c0_descriptive', 'c1_contribution', 'c2_causal'], { required_error: 'Causality mode is required' }),
   methodClass: z.enum([
@@ -176,6 +177,7 @@ export const defaultFormValues: Partial<StudyFormData> = {
   studyIndicators: '',
   studyRegions: [],
   studyCountries: [],
+  studySubnational: [],
   dataCollectionMethods: [],
   fundingSource: '',
   commissioningSource: '',

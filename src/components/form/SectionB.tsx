@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { MultiSelect } from './MultiSelect';
+import { FilteredMultiSelect } from './FilteredMultiSelect';
 import {
   STUDY_TYPE_OPTIONS,
   TIMING_OPTIONS,
@@ -34,12 +35,19 @@ import {
   CGIAR_COUNTRY_OPTIONS,
   regionsForCountries,
 } from '@/data/cgiarGeography';
+import {
+  SUBNATIONAL_OPTIONS,
+  countriesForSubnational,
+} from '@/data/subnationalUnits';
 
 const REGION_GROUPS = [{ label: 'CGIAR Regions', options: CGIAR_REGION_OPTIONS }];
 const COUNTRY_GROUPS = [{ label: 'Countries', options: CGIAR_COUNTRY_OPTIONS }];
 
 const regionLabelMap: Record<string, string> = {};
 for (const r of CGIAR_REGION_OPTIONS) regionLabelMap[r.value] = r.label;
+
+const countryLabelMap: Record<string, string> = {};
+for (const c of CGIAR_COUNTRY_OPTIONS) countryLabelMap[c.value] = c.label;
 
 interface SectionBProps {
   form: UseFormReturn<StudyFormData>;
@@ -49,21 +57,35 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
   const geographicScope = useWatch({ control: form.control, name: 'geographicScope' });
   const studyCountries = useWatch({ control: form.control, name: 'studyCountries' }) ?? [];
   const studyRegions = useWatch({ control: form.control, name: 'studyRegions' }) ?? [];
+  const studySubnational = useWatch({ control: form.control, name: 'studySubnational' }) ?? [];
   const prevScopeRef = useRef(geographicScope);
 
-  // Clear region/country fields when geographic scope changes away from relevant values
+  // Clear region/country/subnational fields when geographic scope changes
   useEffect(() => {
     const prev = prevScopeRef.current;
     prevScopeRef.current = geographicScope;
     if (prev === geographicScope) return;
 
-    if (geographicScope !== 'regional' && geographicScope !== 'national') {
-      form.setValue('studyRegions', [], { shouldDirty: true });
+    // Always clear subnational when leaving sub_national
+    if (prev === 'sub_national') {
+      form.setValue('studySubnational', [], { shouldDirty: true });
+    }
+
+    if (geographicScope === 'regional') {
       form.setValue('studyCountries', [], { shouldDirty: true });
-    } else if (geographicScope === 'regional') {
-      form.setValue('studyCountries', [], { shouldDirty: true });
+      form.setValue('studySubnational', [], { shouldDirty: true });
     } else if (geographicScope === 'national') {
       form.setValue('studyRegions', [], { shouldDirty: true });
+      form.setValue('studySubnational', [], { shouldDirty: true });
+    } else if (geographicScope === 'sub_national') {
+      form.setValue('studyRegions', [], { shouldDirty: true });
+      form.setValue('studyCountries', [], { shouldDirty: true });
+      form.setValue('studySubnational', [], { shouldDirty: true });
+    } else {
+      // global, site_specific — clear all
+      form.setValue('studyRegions', [], { shouldDirty: true });
+      form.setValue('studyCountries', [], { shouldDirty: true });
+      form.setValue('studySubnational', [], { shouldDirty: true });
     }
   }, [geographicScope, form]);
 
@@ -76,6 +98,21 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
       form.setValue('studyRegions', derived, { shouldDirty: true });
     }
   }, [geographicScope, studyCountries, form]);
+
+  // Auto-populate countries and regions from selected subnational units
+  useEffect(() => {
+    if (geographicScope !== 'sub_national') return;
+    const derivedCountries = countriesForSubnational(studySubnational);
+    const currentCountries = form.getValues('studyCountries') ?? [];
+    if (derivedCountries.join(',') !== currentCountries.join(',')) {
+      form.setValue('studyCountries', derivedCountries, { shouldDirty: true });
+    }
+    const derivedRegions = regionsForCountries(derivedCountries);
+    const currentRegions = form.getValues('studyRegions') ?? [];
+    if (derivedRegions.join(',') !== currentRegions.join(',')) {
+      form.setValue('studyRegions', derivedRegions, { shouldDirty: true });
+    }
+  }, [geographicScope, studySubnational, form]);
 
   return (
     <div className="grid gap-6 sm:grid-cols-2">
@@ -259,6 +296,59 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
               </FormItem>
             )}
           />
+          {/* Region(s) — read-only, auto-populated from countries */}
+          {studyRegions.length > 0 && (
+            <div className="sm:col-span-2 space-y-1.5">
+              <span className="text-sm font-medium leading-none">Region(s)</span>
+              <div className="flex flex-wrap gap-1">
+                {studyRegions.map((r) => (
+                  <Badge key={r} variant="secondary">
+                    {regionLabelMap[r] ?? r}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Auto-populated from selected countries</p>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Province(s)/State(s) — editable when scope is sub_national */}
+      {geographicScope === 'sub_national' && (
+        <>
+          <FormField
+            control={form.control}
+            name="studySubnational"
+            render={({ field }) => (
+              <FormItem className="sm:col-span-2">
+                <FormLabel>Province(s)/State(s)</FormLabel>
+                <FormControl>
+                  <FilteredMultiSelect
+                    options={SUBNATIONAL_OPTIONS}
+                    value={field.value ?? []}
+                    onChange={field.onChange}
+                    placeholder="Select provinces/states..."
+                    searchPlaceholder="Type to search provinces/states..."
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {/* Country(ies) — read-only, auto-populated from provinces */}
+          {studyCountries.length > 0 && (
+            <div className="sm:col-span-2 space-y-1.5">
+              <span className="text-sm font-medium leading-none">Country(ies)</span>
+              <div className="flex flex-wrap gap-1">
+                {studyCountries.map((c) => (
+                  <Badge key={c} variant="secondary">
+                    {countryLabelMap[c] ?? c}
+                  </Badge>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Auto-populated from selected provinces/states</p>
+            </div>
+          )}
           {/* Region(s) — read-only, auto-populated from countries */}
           {studyRegions.length > 0 && (
             <div className="sm:col-span-2 space-y-1.5">

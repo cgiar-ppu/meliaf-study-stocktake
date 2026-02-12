@@ -116,6 +116,22 @@ class TestValidatorRegionsCountries:
         fields = [e["field"] for e in exc_info.value.errors]
         assert "studyCountries" in fields
 
+    def test_study_subnational_optional(self, valid_submission_body):
+        valid_submission_body.pop("studySubnational", None)
+        validate_submission(valid_submission_body)
+
+    def test_study_subnational_accepted(self, valid_submission_body):
+        valid_submission_body["studySubnational"] = ["KE-01", "KE-02"]
+        result = validate_submission(valid_submission_body)
+        assert result["studySubnational"] == ["KE-01", "KE-02"]
+
+    def test_study_subnational_invalid_type(self, valid_submission_body):
+        valid_submission_body["studySubnational"] = "KE-01"
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        fields = [e["field"] for e in exc_info.value.errors]
+        assert "studySubnational" in fields
+
 
 class TestValidatorStringLengths:
     def test_study_title_too_long(self, valid_submission_body):

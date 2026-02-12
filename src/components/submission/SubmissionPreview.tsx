@@ -15,6 +15,7 @@ import {
   PRIMARY_USER_OPTIONS,
 } from '@/types';
 import { CGIAR_REGION_OPTIONS, CGIAR_COUNTRY_OPTIONS } from '@/data/cgiarGeography';
+import { SUBNATIONAL_LOOKUP } from '@/data/subnationalUnits';
 
 const regionLookup: Record<string, string> = {};
 for (const r of CGIAR_REGION_OPTIONS) regionLookup[r.value] = r.label;
@@ -140,6 +141,15 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
             <div className="flex flex-wrap gap-1">
               {(s.studyCountries as string[]).map((c) => (
                 <Badge key={c} variant="secondary">{countryLookup[c] ?? c}</Badge>
+              ))}
+            </div>
+          </PreviewField>
+        )}
+        {Array.isArray(s.studySubnational) && (s.studySubnational as string[]).length > 0 && (
+          <PreviewField label="Province(s)/State(s)">
+            <div className="flex flex-wrap gap-1">
+              {(s.studySubnational as string[]).map((code) => (
+                <Badge key={code} variant="secondary">{SUBNATIONAL_LOOKUP[code] ?? code}</Badge>
               ))}
             </div>
           </PreviewField>

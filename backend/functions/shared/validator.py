@@ -48,6 +48,7 @@ def validate_submission(data):
     _require_enum(data, "primaryIndicator", VALID_PRIMARY_INDICATORS, errors)
     _optional_string_array(data, "studyRegions", errors)
     _optional_string_array(data, "studyCountries", errors)
+    _optional_string_array(data, "studySubnational", errors)
 
     # --- Section C: Research Details (validate types/lengths if present) ---
     _optional_string(data, "keyResearchQuestions", MAX_RESEARCH_QUESTIONS, errors)
