@@ -143,25 +143,60 @@ export type PrimaryUserType =
 
 export type SubmissionStatus = 'draft' | 'active' | 'archived';
 
-export const LEAD_CENTER_OPTIONS: { value: string; label: string }[] = [
-  { value: 'AfricaRice', label: 'AfricaRice' },
-  { value: 'Alliance of Bioversity International and CIAT', label: 'Alliance of Bioversity International and CIAT' },
-  { value: 'CIFOR-ICRAF', label: 'CIFOR-ICRAF' },
-  { value: 'CIMMYT', label: 'CIMMYT' },
-  { value: 'CIP', label: 'CIP' },
-  { value: 'IAES Evaluation', label: 'IAES Evaluation' },
-  { value: 'IAES IDC', label: 'IAES IDC' },
-  { value: 'IAES SPIA', label: 'IAES SPIA' },
-  { value: 'ICARDA', label: 'ICARDA' },
-  { value: 'ICRISAT', label: 'ICRISAT' },
-  { value: 'IFPRI', label: 'IFPRI' },
-  { value: 'IITA', label: 'IITA' },
-  { value: 'ILRI', label: 'ILRI' },
-  { value: 'IRRI', label: 'IRRI' },
-  { value: 'IWMI', label: 'IWMI' },
-  { value: 'OCS (Office of the Chief Scientist)', label: 'OCS (Office of the Chief Scientist)' },
-  { value: 'WorldFish', label: 'WorldFish' },
+export const LEAD_CENTER_GROUPS = [
+  {
+    label: 'Centers',
+    options: [
+      { value: 'AfricaRice', label: 'AfricaRice' },
+      { value: 'Alliance of Bioversity International and CIAT', label: 'Alliance of Bioversity International and CIAT' },
+      { value: 'CIFOR-ICRAF', label: 'CIFOR-ICRAF' },
+      { value: 'CIMMYT', label: 'CIMMYT' },
+      { value: 'CIP', label: 'CIP' },
+      { value: 'ICARDA', label: 'ICARDA' },
+      { value: 'ICRISAT', label: 'ICRISAT' },
+      { value: 'IFPRI', label: 'IFPRI' },
+      { value: 'IITA', label: 'IITA' },
+      { value: 'ILRI', label: 'ILRI' },
+      { value: 'IRRI', label: 'IRRI' },
+      { value: 'IWMI', label: 'IWMI' },
+      { value: 'WorldFish', label: 'WorldFish' },
+    ],
+  },
+  {
+    label: 'Programs',
+    options: [
+      { value: 'Better Diets and Nutrition', label: 'Better Diets and Nutrition' },
+      { value: 'Breeding for Tomorrow', label: 'Breeding for Tomorrow' },
+      { value: 'Climate Action', label: 'Climate Action' },
+      { value: 'Food Frontiers and Security', label: 'Food Frontiers and Security' },
+      { value: 'Multifunctional Landscapes', label: 'Multifunctional Landscapes' },
+      { value: 'Policy Innovations', label: 'Policy Innovations' },
+      { value: 'Sustainable Animal and Aquatic Foods', label: 'Sustainable Animal and Aquatic Foods' },
+      { value: 'Sustainable Farming', label: 'Sustainable Farming' },
+      { value: 'Scaling for Impact', label: 'Scaling for Impact' },
+    ],
+  },
+  {
+    label: 'Accelerators',
+    options: [
+      { value: 'Capacity Sharing', label: 'Capacity Sharing' },
+      { value: 'Digital Transformation', label: 'Digital Transformation' },
+      { value: 'Gender Equality and Social Inclusion', label: 'Gender Equality and Social Inclusion' },
+      { value: 'Genebanks', label: 'Genebanks' },
+    ],
+  },
+  {
+    label: 'System',
+    options: [
+      { value: 'IAES Evaluation', label: 'IAES Evaluation' },
+      { value: 'IAES IDC', label: 'IAES IDC' },
+      { value: 'IAES SPIA', label: 'IAES SPIA' },
+      { value: 'OCS (Office of the Chief Scientist)', label: 'OCS (Office of the Chief Scientist)' },
+    ],
+  },
 ];
+
+export const LEAD_CENTER_OPTIONS = LEAD_CENTER_GROUPS.flatMap(g => g.options);
 
 export const OTHER_CENTERS_GROUPS = [
   {
@@ -218,6 +253,16 @@ export const OTHER_CENTERS_GROUPS = [
 
 export const PRIMARY_INDICATOR_GROUPS = [
   {
+    label: 'Impacts',
+    options: [
+      { value: 'Poverty Reduction, Livelihoods and Jobs', label: 'Poverty Reduction, Livelihoods and Jobs' },
+      { value: 'Nutrition, Health and Food Security', label: 'Nutrition, Health and Food Security' },
+      { value: 'Gender Equality, Youth and Social Inclusion', label: 'Gender Equality, Youth and Social Inclusion' },
+      { value: 'Climate Adaptation and Mitigation', label: 'Climate Adaptation and Mitigation' },
+      { value: 'Environmental Health and Biodiversity', label: 'Environmental Health and Biodiversity' },
+    ],
+  },
+  {
     label: 'Outcomes',
     options: [
       { value: 'Innovation Use', label: 'Innovation Use' },
@@ -232,16 +277,6 @@ export const PRIMARY_INDICATOR_GROUPS = [
       { value: 'Capacity Sharing', label: 'Capacity Sharing' },
       { value: 'Knowledge Products', label: 'Knowledge Products' },
       { value: 'Other Output', label: 'Other Output' },
-    ],
-  },
-  {
-    label: 'Impacts',
-    options: [
-      { value: 'Poverty Reduction, Livelihoods and Jobs', label: 'Poverty Reduction, Livelihoods and Jobs' },
-      { value: 'Nutrition, Health and Food Security', label: 'Nutrition, Health and Food Security' },
-      { value: 'Gender Equality, Youth and Social Inclusion', label: 'Gender Equality, Youth and Social Inclusion' },
-      { value: 'Climate Adaptation and Mitigation', label: 'Climate Adaptation and Mitigation' },
-      { value: 'Environmental Health and Biodiversity', label: 'Environmental Health and Biodiversity' },
     ],
   },
 ];

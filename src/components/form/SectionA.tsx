@@ -12,13 +12,15 @@ import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
 import { MultiSelect } from './MultiSelect';
 import { SearchableSelect } from './SearchableSelect';
-import { LEAD_CENTER_OPTIONS, OTHER_CENTERS_GROUPS } from '@/types';
+import { LEAD_CENTER_GROUPS, OTHER_CENTERS_GROUPS } from '@/types';
 import { W3_BILATERAL_GROUPS } from '@/data/w3BilateralProjects';
 
 interface SectionAProps {
@@ -72,10 +74,15 @@ export const SectionA = memo(function SectionA({ form }: SectionAProps) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {LEAD_CENTER_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
+                {LEAD_CENTER_GROUPS.map((group) => (
+                  <SelectGroup key={group.label}>
+                    <SelectLabel>{group.label}</SelectLabel>
+                    {group.options.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>
