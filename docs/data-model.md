@@ -204,7 +204,7 @@ All fields mandatory. Cross-field validation: `expectedEndDate >= startDate`.
 
 ### Lead Centers
 
-AfricaRice, Alliance of Bioversity International and CIAT, CIFOR-ICRAF, CIMMYT, CIP, IAES Evaluation, IAES IDC, IAES SPIA, ICARDA, ICRISAT, IFPRI, IITA, ILRI, IRRI, IWMI, OCS (Office of the Chief Scientist), WorldFish
+AfricaRice, Alliance of Bioversity International and CIAT, CIFOR-ICRAF, CIMMYT, CIP, IAES Evaluation, IAES ISDC, IAES SPIA, ICARDA, ICRISAT, IFPRI, IITA, ILRI, IRRI, IWMI, OCS (Office of the Chief Scientist), WorldFish
 
 ### Primary Users
 

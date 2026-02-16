@@ -189,7 +189,7 @@ export const LEAD_CENTER_GROUPS = [
     label: 'System',
     options: [
       { value: 'IAES Evaluation', label: 'IAES Evaluation' },
-      { value: 'IAES IDC', label: 'IAES IDC' },
+      { value: 'IAES ISDC', label: 'IAES ISDC' },
       { value: 'IAES SPIA', label: 'IAES SPIA' },
       { value: 'OCS (Office of the Chief Scientist)', label: 'OCS (Office of the Chief Scientist)' },
     ],
@@ -244,7 +244,7 @@ export const OTHER_CENTERS_GROUPS = [
     label: 'System',
     options: [
       { value: 'IAES Evaluation', label: 'IAES Evaluation' },
-      { value: 'IAES IDC', label: 'IAES IDC' },
+      { value: 'IAES ISDC', label: 'IAES ISDC' },
       { value: 'IAES SPIA', label: 'IAES SPIA' },
       { value: 'OCS (Office of the Chief Scientist)', label: 'OCS (Office of the Chief Scientist)' },
     ],
