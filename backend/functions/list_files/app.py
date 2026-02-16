@@ -13,10 +13,15 @@ from shared.db import get_latest_active_version
 logger = logging.getLogger()
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
+AWS_REGION = os.environ.get("AWS_REGION", "eu-central-1")
+
 s3_client = boto3.client(
     "s3",
-    region_name=os.environ.get("AWS_REGION", "eu-central-1"),
-    config=Config(signature_version="s3v4"),
+    region_name=AWS_REGION,
+    config=Config(
+        signature_version="s3v4",
+        s3={"addressing_style": "virtual"},
+    ),
 )
 
 FILES_BUCKET = os.environ["FILES_BUCKET"]
