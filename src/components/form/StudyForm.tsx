@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,6 +30,7 @@ import { SectionF } from './SectionF';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from '@/hooks/use-toast';
 import { submitStudy, updateSubmission } from '@/lib/api';
+import type { FileUploadHandle } from './FileUpload';
 
 interface StudyFormProps {
   mode?: 'create' | 'edit';
@@ -47,6 +48,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const fileUploadRef = useRef<FileUploadHandle>(null);
 
   const form = useForm<StudyFormData>({
     resolver: zodResolver(studyFormSchema),
@@ -123,8 +125,8 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
     const sectionChecks = [
       // Section A - Basic Information (all required including otherCenters)
       () => !!(formValues.studyId && formValues.studyTitle && formValues.leadCenter && formValues.contactName && formValues.contactEmail && formValues.otherCenters?.length),
-      // Section B - Study Classification (all required including primaryIndicator)
-      () => !!(formValues.studyType && formValues.timing && formValues.analyticalScope && formValues.geographicScope && formValues.resultLevel && formValues.causalityMode && formValues.methodClass && formValues.primaryIndicator),
+      // Section B - Study Classification (all required including primaryIndicator and studyIndicators)
+      () => !!(formValues.studyType && formValues.timing && formValues.analyticalScope && formValues.geographicScope && formValues.resultLevel && formValues.causalityMode && formValues.methodClass && formValues.primaryIndicator && formValues.studyIndicators),
       // Section C - Research Details (conditional - at least key fields filled)
       () => showSectionC ? !!(formValues.keyResearchQuestions || formValues.unitOfAnalysis || formValues.treatmentIntervention) : false,
       // Section D - Timeline & Status (all required)
@@ -159,8 +161,12 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
         queryClient.invalidateQueries({ queryKey: ['submissions'] });
         queryClient.invalidateQueries({ queryKey: ['submission', submissionId] });
       } else {
-        await submitStudy(cleaned);
+        const result = await submitStudy(cleaned);
         clearDraft();
+        // Upload any queued files now that we have a submissionId
+        if (fileUploadRef.current?.hasPendingFiles()) {
+          await fileUploadRef.current.uploadPendingFiles(result.submissionId);
+        }
       }
       setShowSuccessDialog(true);
     } catch (err) {
@@ -239,10 +245,10 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
             isOpen={openSections.includes('b')}
             onToggle={() => toggleSection('b')}
             isRequired
-            isComplete={getSectionComplete(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'])}
-            hasErrors={getSectionErrors(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'])}
+            isComplete={getSectionComplete(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator', 'studyIndicators'])}
+            hasErrors={getSectionErrors(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator', 'studyIndicators'])}
           >
-            <SectionB form={form} />
+            <SectionB form={form} submissionId={submissionId} fileUploadRef={fileUploadRef} />
           </FormSection>
 
           {/* Section C - Research Details (Conditional) */}
@@ -255,8 +261,8 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
               onToggle={() => toggleSection('c')}
               isConditional
               isRequired
-              isComplete={getSectionComplete(['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'], true, 'some')}
-              hasErrors={getSectionErrors(['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'])}
+              isComplete={getSectionComplete(['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'preAnalysisPlan', 'dataCollectionRounds'], true, 'some')}
+              hasErrors={getSectionErrors(['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'preAnalysisPlan', 'dataCollectionRounds'])}
             >
               <SectionC form={form} />
             </FormSection>

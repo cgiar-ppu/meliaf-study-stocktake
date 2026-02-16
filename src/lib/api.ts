@@ -158,3 +158,50 @@ export function getSubmission(id: string): Promise<SubmissionItem> {
     return active;
   });
 }
+
+// --- File Upload API ---
+
+export interface UploadUrlResponse {
+  uploadUrl: string;
+  key: string;
+  filename: string;
+}
+
+export interface FileItem {
+  key: string;
+  filename: string;
+  size: number;
+  downloadUrl: string;
+}
+
+export interface ListFilesResponse {
+  files: FileItem[];
+}
+
+export function getUploadUrl(submissionId: string, filename: string, contentType: string): Promise<UploadUrlResponse> {
+  return request<UploadUrlResponse>(`/submissions/${submissionId}/upload-url`, {
+    method: 'POST',
+    body: JSON.stringify({ filename, contentType }),
+  });
+}
+
+export function listFiles(submissionId: string): Promise<ListFilesResponse> {
+  return request<ListFilesResponse>(`/submissions/${submissionId}/files`);
+}
+
+export function deleteFile(submissionId: string, filename: string): Promise<{ message: string }> {
+  return request<{ message: string }>(`/submissions/${submissionId}/files/${encodeURIComponent(filename)}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function uploadFileToS3(presignedUrl: string, file: File): Promise<void> {
+  const response = await fetch(presignedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  });
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.statusText}`);
+  }
+}

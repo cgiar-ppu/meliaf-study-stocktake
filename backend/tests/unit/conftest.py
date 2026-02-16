@@ -116,6 +116,7 @@ def valid_submission_body():
         "causalityMode": "c2_causal",
         "methodClass": "experimental_quasi",
         "primaryIndicator": "Innovation Use",
+        "studyIndicators": "Crop yield, household income, adoption rate",
         "startDate": "2025-01-15",
         "expectedEndDate": "2026-06-30",
         "dataCollectionStatus": "ongoing",

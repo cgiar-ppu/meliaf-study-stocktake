@@ -91,6 +91,8 @@ import {
   OTHER_CENTERS_GROUPS,
   YES_NO_NA_OPTIONS,
   PRIMARY_USER_OPTIONS,
+  UNIT_OF_ANALYSIS_OPTIONS,
+  DATA_COLLECTION_METHOD_OPTIONS,
 } from '@/types';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { CGIAR_REGION_OPTIONS, CGIAR_COUNTRY_OPTIONS } from '@/data/cgiarGeography';
@@ -121,6 +123,8 @@ const primaryIndicatorLookup = buildLookup(
   PRIMARY_INDICATOR_GROUPS.flatMap((g) => g.options)
 );
 
+const unitOfAnalysisLookup = buildLookup(UNIT_OF_ANALYSIS_OPTIONS);
+const dataCollectionMethodLookup = buildLookup(DATA_COLLECTION_METHOD_OPTIONS);
 const regionLookup = buildLookup(CGIAR_REGION_OPTIONS);
 const countryLookup = buildLookup(CGIAR_COUNTRY_OPTIONS);
 const subnationalLookup = SUBNATIONAL_LOOKUP;
@@ -351,7 +355,15 @@ const columns: ColumnDef<SubmissionItem, unknown>[] = [
   {
     accessorKey: 'unitOfAnalysis',
     header: 'Unit of Analysis',
-    cell: ({ getValue }) => <TruncatedCell text={String(getValue() ?? '')} />,
+    cell: ({ getValue }) => {
+      const v = getValue();
+      if (Array.isArray(v)) {
+        if (v.length === 0) return '';
+        const text = v.map((u: string) => unitOfAnalysisLookup[u] ?? u).join(', ');
+        return <TruncatedCell text={text} />;
+      }
+      return <TruncatedCell text={String(v ?? '')} />;
+    },
   },
   {
     accessorKey: 'treatmentIntervention',
@@ -379,7 +391,7 @@ const columns: ColumnDef<SubmissionItem, unknown>[] = [
     cell: ({ getValue }) => {
       const v = getValue();
       if (!Array.isArray(v) || v.length === 0) return '';
-      const text = v.join(', ');
+      const text = v.map((m: string) => dataCollectionMethodLookup[m] ?? m).join(', ');
       return <TruncatedCell text={text} />;
     },
   },
@@ -523,8 +535,8 @@ const DEFAULT_VISIBLE: Record<string, boolean> = {
 
 const COLUMN_SECTIONS: { label: string; columns: string[] }[] = [
   { label: 'A — Basic Information',    columns: ['studyId', 'studyTitle', 'leadCenter', 'contactName', 'contactEmail', 'otherCenters'] },
-  { label: 'B — Study Classification', columns: ['studyType', 'timing', 'analyticalScope', 'geographicScope', 'studyRegions', 'studyCountries', 'studySubnational', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator'] },
-  { label: 'C — Research Details',     columns: ['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'studyIndicators', 'preAnalysisPlan', 'dataCollectionRounds'] },
+  { label: 'B — Study Classification', columns: ['studyType', 'timing', 'analyticalScope', 'geographicScope', 'studyRegions', 'studyCountries', 'studySubnational', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator', 'studyIndicators'] },
+  { label: 'C — Research Details',     columns: ['keyResearchQuestions', 'unitOfAnalysis', 'treatmentIntervention', 'sampleSize', 'powerCalculation', 'dataCollectionMethods', 'preAnalysisPlan', 'dataCollectionRounds'] },
   { label: 'D — Timeline & Status',    columns: ['startDate', 'expectedEndDate', 'dataCollectionStatus', 'analysisStatus'] },
   { label: 'E — Funding & Resources',  columns: ['funded', 'fundingSource', 'totalCostUSD', 'proposalAvailable'] },
   { label: 'F — Outputs & Users',      columns: ['manuscriptDeveloped', 'policyBriefDeveloped', 'relatedToPastStudy', 'intendedPrimaryUser', 'commissioningSource'] },
@@ -568,9 +580,16 @@ const exportFormatters: Record<string, (value: unknown) => string> = {
     if (!Array.isArray(v) || v.length === 0) return '';
     return v.map((c: string) => otherCentersLookup[c] ?? c).join(', ');
   },
+  unitOfAnalysis: (v) => {
+    if (Array.isArray(v)) {
+      if (v.length === 0) return '';
+      return v.map((u: string) => unitOfAnalysisLookup[u] ?? u).join(', ');
+    }
+    return String(v ?? '');
+  },
   dataCollectionMethods: (v) => {
     if (!Array.isArray(v) || v.length === 0) return '';
-    return v.join(', ');
+    return v.map((m: string) => dataCollectionMethodLookup[m] ?? m).join(', ');
   },
   intendedPrimaryUser: (v) => {
     if (!Array.isArray(v) || v.length === 0) return '';

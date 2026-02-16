@@ -103,12 +103,12 @@ export const studyFormSchema = z.object({
 
   // Section C - Research Details (Conditional)
   keyResearchQuestions: z.string().trim().max(2000, 'Research questions must be less than 2000 characters').optional(),
-  unitOfAnalysis: z.string().trim().max(200, 'Unit of analysis must be less than 200 characters').optional(),
+  unitOfAnalysis: z.array(z.string()).default([]),
   treatmentIntervention: z.string().trim().max(500, 'Treatment must be less than 500 characters').optional(),
   sampleSize: z.number().int().positive().optional().or(z.literal('')),
   powerCalculation: z.enum(['yes', 'no', 'na']).optional(),
   dataCollectionMethods: z.array(z.string()).default([]),
-  studyIndicators: z.string().trim().max(2000, 'Indicators must be less than 2000 characters').optional(),
+  studyIndicators: z.string().trim().min(1, 'Study indicators are required').max(2000, 'Indicators must be less than 2000 characters'),
   preAnalysisPlan: yesNoWithRequiredLinkSchema.optional(),
   dataCollectionRounds: z.number().int().positive().optional().or(z.literal('')),
 
@@ -172,7 +172,7 @@ export const defaultFormValues: Partial<StudyFormData> = {
   otherCenters: [],
   primaryIndicator: '',
   keyResearchQuestions: '',
-  unitOfAnalysis: '',
+  unitOfAnalysis: [],
   treatmentIntervention: '',
   studyIndicators: '',
   studyRegions: [],

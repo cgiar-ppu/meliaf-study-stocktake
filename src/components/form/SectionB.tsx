@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react';
+import { memo, useEffect, useRef, type Ref } from 'react';
 import { UseFormReturn, useWatch } from 'react-hook-form';
 import { StudyFormData } from '@/lib/formSchema';
 import {
@@ -8,6 +8,8 @@ import {
   FormControl,
   FormMessage,
 } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { FileUpload, type FileUploadHandle } from './FileUpload';
 import {
   Select,
   SelectContent,
@@ -51,9 +53,11 @@ for (const c of CGIAR_COUNTRY_OPTIONS) countryLabelMap[c.value] = c.label;
 
 interface SectionBProps {
   form: UseFormReturn<StudyFormData>;
+  submissionId?: string;
+  fileUploadRef?: Ref<FileUploadHandle>;
 }
 
-export const SectionB = memo(function SectionB({ form }: SectionBProps) {
+export const SectionB = memo(function SectionB({ form, submissionId, fileUploadRef }: SectionBProps) {
   const geographicScope = useWatch({ control: form.control, name: 'geographicScope' });
   const studyCountries = useWatch({ control: form.control, name: 'studyCountries' }) ?? [];
   const studyRegions = useWatch({ control: form.control, name: 'studyRegions' }) ?? [];
@@ -494,6 +498,30 @@ export const SectionB = memo(function SectionB({ form }: SectionBProps) {
           </FormItem>
         )}
       />
+
+      {/* Study-specific Indicators */}
+      <FormField
+        control={form.control}
+        name="studyIndicators"
+        render={({ field }) => (
+          <FormItem className="sm:col-span-2">
+            <FormLabel>Study-specific Indicators *</FormLabel>
+            <FormControl>
+              <Textarea
+                placeholder="List the key indicators this study will measure..."
+                className="min-h-[80px]"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      {/* File Upload */}
+      <div className="sm:col-span-2">
+        <FileUpload ref={fileUploadRef} submissionId={submissionId} />
+      </div>
     </div>
   );
 });

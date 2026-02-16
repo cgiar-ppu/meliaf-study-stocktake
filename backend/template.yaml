@@ -208,6 +208,32 @@ Resources:
           Projection:
             ProjectionType: ALL
 
+  # --- S3 File Storage ---
+  MeliafFilesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub meliaf-stocktake-files-${Environment}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - PUT
+              - GET
+            AllowedOrigins:
+              - '*'
+            MaxAge: 3600
+      Tags:
+        - Key: Project
+          Value: meliaf-study-stocktake
+        - Key: Environment
+          Value: !Ref Environment
+
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -260,6 +286,23 @@ Resources:
               - dynamodb:Query
             Resource:
               - !GetAtt UsersTable.Arn
+
+  FilesBucketPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub meliaf-files-s3-${Environment}
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:ListBucket
+              - s3:DeleteObject
+            Resource:
+              - !GetAtt MeliafFilesBucket.Arn
+              - !Sub '${MeliafFilesBucket.Arn}/*'
 
   # --- Cognito Trigger Functions ---
   PreSignUpValidationFunction:
@@ -521,6 +564,70 @@ Resources:
             Path: /submissions/{id}/history
             Method: get
 
+  # --- File Upload Functions ---
+  GetUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-get-upload-url-${Environment}
+      CodeUri: functions/
+      Handler: get_upload_url.app.lambda_handler
+      Description: Generate presigned S3 PUT URL for file upload
+      Environment:
+        Variables:
+          FILES_BUCKET: !Ref MeliafFilesBucket
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+        - !Ref FilesBucketPolicy
+      Events:
+        GetUploadUrl:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}/upload-url
+            Method: post
+
+  ListFilesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-list-files-${Environment}
+      CodeUri: functions/
+      Handler: list_files.app.lambda_handler
+      Description: List uploaded files for a submission
+      Environment:
+        Variables:
+          FILES_BUCKET: !Ref MeliafFilesBucket
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+        - !Ref FilesBucketPolicy
+      Events:
+        ListFiles:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}/files
+            Method: get
+
+  DeleteFileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-delete-file-${Environment}
+      CodeUri: functions/
+      Handler: delete_file.app.lambda_handler
+      Description: Delete a file from S3 for a submission
+      Environment:
+        Variables:
+          FILES_BUCKET: !Ref MeliafFilesBucket
+      Policies:
+        - !Ref SubmissionsDynamoDBPolicy
+        - !Ref FilesBucketPolicy
+      Events:
+        DeleteFile:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /submissions/{id}/files/{filename}
+            Method: delete
+
 Outputs:
   ApiUrl:
     Description: API Gateway endpoint URL
@@ -549,3 +656,6 @@ Outputs:
   CognitoHostedUIDomain:
     Description: Cognito Hosted UI domain for OAuth redirects
     Value: !Sub "https://meliaf-${Environment}.auth.${AWS::Region}.amazoncognito.com"
+  FilesBucketName:
+    Description: S3 Bucket for file uploads
+    Value: !Ref MeliafFilesBucket

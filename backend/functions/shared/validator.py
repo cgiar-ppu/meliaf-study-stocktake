@@ -52,12 +52,12 @@ def validate_submission(data):
 
     # --- Section C: Research Details (validate types/lengths if present) ---
     _optional_string(data, "keyResearchQuestions", MAX_RESEARCH_QUESTIONS, errors)
-    _optional_string(data, "unitOfAnalysis", 200, errors)
+    _optional_string_array(data, "unitOfAnalysis", errors)
     _optional_string(data, "treatmentIntervention", 500, errors)
     _optional_positive_int(data, "sampleSize", errors)
     _optional_enum(data, "powerCalculation", VALID_YES_NO_NA, errors)
     _optional_string_array(data, "dataCollectionMethods", errors)
-    _optional_string(data, "studyIndicators", MAX_STUDY_INDICATORS, errors)
+    _require_string(data, "studyIndicators", MAX_STUDY_INDICATORS, errors)
     _optional_yes_no_with_link(data, "preAnalysisPlan", errors)
     _optional_positive_int(data, "dataCollectionRounds", errors)
 

@@ -7,7 +7,6 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,9 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { TagInput } from './TagInput';
+import { CreatableMultiSelect } from './CreatableMultiSelect';
 import { YesNoLinkField } from './YesNoLinkField';
-import { YES_NO_NA_OPTIONS } from '@/types';
+import { YES_NO_NA_OPTIONS, UNIT_OF_ANALYSIS_OPTIONS, DATA_COLLECTION_METHOD_OPTIONS } from '@/types';
 
 interface SectionCProps {
   form: UseFormReturn<StudyFormData>;
@@ -56,7 +55,12 @@ export const SectionC = memo(function SectionC({ form }: SectionCProps) {
           <FormItem>
             <FormLabel>Unit of Analysis</FormLabel>
             <FormControl>
-              <Input placeholder="Enter unit of analysis" {...field} />
+              <CreatableMultiSelect
+                suggestions={UNIT_OF_ANALYSIS_OPTIONS}
+                value={field.value || []}
+                onChange={field.onChange}
+                placeholder="Select or type unit of analysis..."
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -146,29 +150,11 @@ export const SectionC = memo(function SectionC({ form }: SectionCProps) {
           <FormItem className="sm:col-span-2">
             <FormLabel>Data Collection Method(s)</FormLabel>
             <FormControl>
-              <TagInput
+              <CreatableMultiSelect
+                suggestions={DATA_COLLECTION_METHOD_OPTIONS}
                 value={field.value || []}
                 onChange={field.onChange}
-                placeholder="Type method and press Enter..."
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      {/* Study-specific Indicators */}
-      <FormField
-        control={form.control}
-        name="studyIndicators"
-        render={({ field }) => (
-          <FormItem className="sm:col-span-2">
-            <FormLabel>Study-specific Indicators</FormLabel>
-            <FormControl>
-              <Textarea
-                placeholder="List the key indicators this study will measure..."
-                className="min-h-[80px]"
-                {...field}
+                placeholder="Select or type data collection methods..."
               />
             </FormControl>
             <FormMessage />

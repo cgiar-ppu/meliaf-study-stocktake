@@ -43,7 +43,7 @@ export interface StudySubmission {
   
   // Section C - Research Details (Conditional)
   keyResearchQuestions?: string;
-  unitOfAnalysis?: string;
+  unitOfAnalysis?: string[];
   treatmentIntervention?: string;
   sampleSize?: number;
   powerCalculation?: YesNoNA;
@@ -408,6 +408,19 @@ export const YES_NO_NA_OPTIONS: { value: YesNoNA; label: string }[] = [
   { value: 'yes', label: 'Yes' },
   { value: 'no', label: 'No' },
   { value: 'na', label: 'N/A' },
+];
+
+export const UNIT_OF_ANALYSIS_OPTIONS: { value: string; label: string }[] = [
+  { value: 'biomarker', label: 'Biomarker' },
+  { value: 'individual', label: 'Individual' },
+  { value: 'household', label: 'Household' },
+  { value: 'business', label: 'Business' },
+];
+
+export const DATA_COLLECTION_METHOD_OPTIONS: { value: string; label: string }[] = [
+  { value: 'surveys', label: 'Surveys' },
+  { value: 'administrative_data', label: 'Administrative Data' },
+  { value: 'remote_sensing', label: 'Remote Sensing' },
 ];
 
 export const PRIMARY_USER_OPTIONS: { value: PrimaryUserType; label: string }[] = [

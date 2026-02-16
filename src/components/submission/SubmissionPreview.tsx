@@ -13,6 +13,8 @@ import {
   FUNDED_OPTIONS,
   YES_NO_NA_OPTIONS,
   PRIMARY_USER_OPTIONS,
+  UNIT_OF_ANALYSIS_OPTIONS,
+  DATA_COLLECTION_METHOD_OPTIONS,
 } from '@/types';
 import { CGIAR_REGION_OPTIONS, CGIAR_COUNTRY_OPTIONS } from '@/data/cgiarGeography';
 import { SUBNATIONAL_LOOKUP } from '@/data/subnationalUnits';
@@ -21,6 +23,10 @@ const regionLookup: Record<string, string> = {};
 for (const r of CGIAR_REGION_OPTIONS) regionLookup[r.value] = r.label;
 const countryLookup: Record<string, string> = {};
 for (const c of CGIAR_COUNTRY_OPTIONS) countryLookup[c.value] = c.label;
+const unitOfAnalysisLookup: Record<string, string> = {};
+for (const u of UNIT_OF_ANALYSIS_OPTIONS) unitOfAnalysisLookup[u.value] = u.label;
+const dataCollectionMethodLookup: Record<string, string> = {};
+for (const m of DATA_COLLECTION_METHOD_OPTIONS) dataCollectionMethodLookup[m.value] = m.label;
 
 function resolveLabel(
   options: { value: string; label: string; description?: string }[],
@@ -167,6 +173,7 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
           {resolveLabel(METHOD_CLASS_OPTIONS, s.methodClass)}
         </PreviewField>
         <PreviewField label="Primary Indicator">{s.primaryIndicator as string}</PreviewField>
+        <PreviewField label="Study Indicators">{s.studyIndicators as string}</PreviewField>
       </PreviewSection>
 
       {/* Section C (conditional) */}
@@ -175,7 +182,19 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
           <PreviewField label="Key Research Questions">
             {s.keyResearchQuestions as string}
           </PreviewField>
-          <PreviewField label="Unit of Analysis">{s.unitOfAnalysis as string}</PreviewField>
+          <PreviewField label="Unit of Analysis">
+            {Array.isArray(s.unitOfAnalysis) && (s.unitOfAnalysis as string[]).length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {(s.unitOfAnalysis as string[]).map((u) => (
+                  <Badge key={u} variant="secondary">{unitOfAnalysisLookup[u] ?? u}</Badge>
+                ))}
+              </div>
+            ) : typeof s.unitOfAnalysis === 'string' ? (
+              s.unitOfAnalysis
+            ) : (
+              '—'
+            )}
+          </PreviewField>
           <PreviewField label="Treatment / Intervention">
             {s.treatmentIntervention as string}
           </PreviewField>
@@ -189,14 +208,13 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
             {Array.isArray(s.dataCollectionMethods) && (s.dataCollectionMethods as string[]).length > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {(s.dataCollectionMethods as string[]).map((m) => (
-                  <Badge key={m} variant="secondary">{m}</Badge>
+                  <Badge key={m} variant="secondary">{dataCollectionMethodLookup[m] ?? m}</Badge>
                 ))}
               </div>
             ) : (
               '—'
             )}
           </PreviewField>
-          <PreviewField label="Study Indicators">{s.studyIndicators as string}</PreviewField>
           <PreviewField label="Pre-Analysis Plan">
             <YesNoLinkDisplay value={s.preAnalysisPlan as { answer?: string; link?: string }} />
           </PreviewField>
