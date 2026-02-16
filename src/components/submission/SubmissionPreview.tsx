@@ -1,5 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
+import { Download, FileIcon, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { SubmissionItem } from '@/lib/api';
+import { listFiles } from '@/lib/api';
 import { shouldShowResearchDetails } from '@/lib/formSchema';
 import {
   STUDY_TYPE_OPTIONS,
@@ -94,6 +97,14 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
     s.methodClass as string,
   );
 
+  const { data: filesData, isLoading: filesLoading } = useQuery({
+    queryKey: ['files', s.submissionId],
+    queryFn: () => listFiles(s.submissionId),
+    enabled: !!s.submissionId,
+  });
+
+  const files = filesData?.files ?? [];
+
   return (
     <div className="space-y-6">
       {/* Section A */}
@@ -174,6 +185,31 @@ export function SubmissionPreview({ submission }: SubmissionPreviewProps) {
         </PreviewField>
         <PreviewField label="Primary Indicator">{s.primaryIndicator as string}</PreviewField>
         <PreviewField label="Study Indicators">{s.studyIndicators as string}</PreviewField>
+        <PreviewField label="Files">
+          {filesLoading ? (
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading...
+            </span>
+          ) : files.length > 0 ? (
+            <div className="space-y-1">
+              {files.map((file) => (
+                <a
+                  key={file.key}
+                  href={file.downloadUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-primary underline hover:text-primary/80"
+                >
+                  <FileIcon className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">{file.filename}</span>
+                  <Download className="h-3.5 w-3.5 shrink-0" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            '—'
+          )}
+        </PreviewField>
       </PreviewSection>
 
       {/* Section C (conditional) */}

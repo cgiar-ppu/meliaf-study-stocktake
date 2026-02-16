@@ -48,6 +48,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showDraftDialog, setShowDraftDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [hasFileChanges, setHasFileChanges] = useState(false);
   const fileUploadRef = useRef<FileUploadHandle>(null);
 
   const form = useForm<StudyFormData>({
@@ -248,7 +249,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
             isComplete={getSectionComplete(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator', 'studyIndicators'])}
             hasErrors={getSectionErrors(['studyType', 'timing', 'analyticalScope', 'geographicScope', 'resultLevel', 'causalityMode', 'methodClass', 'primaryIndicator', 'studyIndicators'])}
           >
-            <SectionB form={form} submissionId={submissionId} fileUploadRef={fileUploadRef} />
+            <SectionB form={form} submissionId={submissionId} fileUploadRef={fileUploadRef} onFileChange={() => setHasFileChanges(true)} />
           </FormSection>
 
           {/* Section C - Research Details (Conditional) */}
@@ -323,7 +324,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
                 Save Draft
               </Button>
             )}
-            <Button type="submit" disabled={isSubmitting || !isFormComplete || (isEdit && !form.formState.isDirty)}>
+            <Button type="submit" disabled={isSubmitting || !isFormComplete || (isEdit && !form.formState.isDirty && !hasFileChanges)}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -340,7 +341,7 @@ export function StudyForm({ mode = 'create', submissionId, initialData }: StudyF
               <p className="text-sm text-muted-foreground sm:text-right">
                 Complete all required sections to submit
               </p>
-            ) : isEdit && !form.formState.isDirty ? (
+            ) : isEdit && !form.formState.isDirty && !hasFileChanges ? (
               <p className="text-sm text-muted-foreground sm:text-right">
                 Make changes to enable update
               </p>

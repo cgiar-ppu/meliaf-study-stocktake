@@ -40,10 +40,11 @@ export interface FileUploadHandle {
 
 interface FileUploadProps {
   submissionId?: string;
+  onFileChange?: () => void;
 }
 
 export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(
-  function FileUpload({ submissionId }, ref) {
+  function FileUpload({ submissionId, onFileChange }, ref) {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,6 +128,7 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(
           try {
             await doUpload(submissionId, valid);
             toast({ title: 'Upload complete' });
+            onFileChange?.();
           } catch (err) {
             toast({
               title: 'Upload failed',
@@ -147,7 +149,7 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(
           if (fileInputRef.current) fileInputRef.current.value = '';
         }
       },
-      [submissionId, validateFile, doUpload, toast],
+      [submissionId, validateFile, doUpload, toast, onFileChange],
     );
 
     const handleDelete = useCallback(
@@ -158,6 +160,7 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(
           await deleteFile(submissionId, file.filename);
           queryClient.invalidateQueries({ queryKey: ['files', submissionId] });
           toast({ title: 'File deleted' });
+          onFileChange?.();
         } catch (err) {
           toast({
             title: 'Delete failed',
@@ -168,7 +171,7 @@ export const FileUpload = forwardRef<FileUploadHandle, FileUploadProps>(
           setDeleting(null);
         }
       },
-      [submissionId, toast, queryClient],
+      [submissionId, toast, queryClient, onFileChange],
     );
 
     const removePending = useCallback((name: string) => {

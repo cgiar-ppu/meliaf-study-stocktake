@@ -55,9 +55,10 @@ interface SectionBProps {
   form: UseFormReturn<StudyFormData>;
   submissionId?: string;
   fileUploadRef?: Ref<FileUploadHandle>;
+  onFileChange?: () => void;
 }
 
-export const SectionB = memo(function SectionB({ form, submissionId, fileUploadRef }: SectionBProps) {
+export const SectionB = memo(function SectionB({ form, submissionId, fileUploadRef, onFileChange }: SectionBProps) {
   const geographicScope = useWatch({ control: form.control, name: 'geographicScope' });
   const studyCountries = useWatch({ control: form.control, name: 'studyCountries' }) ?? [];
   const studyRegions = useWatch({ control: form.control, name: 'studyRegions' }) ?? [];
@@ -520,7 +521,7 @@ export const SectionB = memo(function SectionB({ form, submissionId, fileUploadR
 
       {/* File Upload */}
       <div className="sm:col-span-2">
-        <FileUpload ref={fileUploadRef} submissionId={submissionId} />
+        <FileUpload ref={fileUploadRef} submissionId={submissionId} onFileChange={onFileChange} />
       </div>
     </div>
   );
