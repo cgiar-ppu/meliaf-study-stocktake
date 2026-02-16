@@ -6,6 +6,7 @@ import uuid
 import logging
 
 import boto3
+from botocore.config import Config
 
 from shared.response import success, error, not_found, server_error
 from shared.identity import get_user_identity
@@ -14,7 +15,11 @@ from shared.db import get_latest_active_version
 logger = logging.getLogger()
 logger.setLevel(os.environ.get("LOG_LEVEL", "INFO"))
 
-s3_client = boto3.client("s3")
+s3_client = boto3.client(
+    "s3",
+    region_name=os.environ.get("AWS_REGION", "eu-central-1"),
+    config=Config(signature_version="s3v4"),
+)
 
 FILES_BUCKET = os.environ["FILES_BUCKET"]
 
