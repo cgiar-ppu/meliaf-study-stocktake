@@ -1,0 +1,63 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'e2e/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/test-e2e.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'e2e/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/test-e2e.yml'
+
+jobs:
+  e2e:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium]
+        # Uncomment to add more browsers:
+        # browser: [chromium, firefox, webkit]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps ${{ matrix.browser }}
+
+      - name: Run E2E tests
+        run: npx playwright test --config e2e/playwright.config.ts --project=${{ matrix.browser }}
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: e2e/report/
+          retention-days: 14
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results-${{ matrix.browser }}
+          path: e2e/test-results/
+          retention-days: 7
