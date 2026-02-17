@@ -260,6 +260,288 @@ describe('getIdToken()', () => {
 });
 
 // ---------------------------------------------------------------------------
+// signUp
+// ---------------------------------------------------------------------------
+describe('signUp()', () => {
+  it('calls amplifySignUp with correct args and stays unauthenticated', async () => {
+    mockAmplifySignUp.mockResolvedValue({ isSignUpComplete: false });
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.signUp('alice@cgiar.org', 'Pass123!', 'Alice');
+    });
+
+    expect(mockAmplifySignUp).toHaveBeenCalledWith({
+      username: 'alice@cgiar.org',
+      password: 'Pass123!',
+      options: { userAttributes: { email: 'alice@cgiar.org', name: 'Alice' } },
+    });
+    // Must confirm email before being authenticated
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('re-throws error and clears loading', async () => {
+    mockAmplifySignUp.mockRejectedValue(new Error('UsernameExistsException'));
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await expect(
+      act(async () => {
+        await result.current.signUp('alice@cgiar.org', 'Pass123!', 'Alice');
+      }),
+    ).rejects.toThrow('UsernameExistsException');
+    expect(result.current.isLoading).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// resetPassword + confirmPasswordReset
+// ---------------------------------------------------------------------------
+describe('resetPassword()', () => {
+  it('calls amplifyResetPassword with username', async () => {
+    mockResetPassword.mockResolvedValue({});
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.resetPassword('alice@cgiar.org');
+    });
+
+    expect(mockResetPassword).toHaveBeenCalledWith({ username: 'alice@cgiar.org' });
+  });
+
+  it('re-throws error on failure', async () => {
+    mockResetPassword.mockRejectedValue(new Error('UserNotFoundException'));
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await expect(
+      act(async () => {
+        await result.current.resetPassword('nobody@cgiar.org');
+      }),
+    ).rejects.toThrow('UserNotFoundException');
+  });
+});
+
+describe('confirmPasswordReset()', () => {
+  it('calls amplifyConfirmResetPassword with correct args', async () => {
+    mockConfirmResetPassword.mockResolvedValue(undefined);
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.confirmPasswordReset('alice@cgiar.org', '123456', 'NewPass!');
+    });
+
+    expect(mockConfirmResetPassword).toHaveBeenCalledWith({
+      username: 'alice@cgiar.org',
+      confirmationCode: '123456',
+      newPassword: 'NewPass!',
+    });
+  });
+
+  it('re-throws error on failure', async () => {
+    mockConfirmResetPassword.mockRejectedValue(new Error('CodeMismatchException'));
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await expect(
+      act(async () => {
+        await result.current.confirmPasswordReset('alice@cgiar.org', 'wrong', 'NewPass!');
+      }),
+    ).rejects.toThrow('CodeMismatchException');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// signOut error path
+// ---------------------------------------------------------------------------
+describe('signOut() error path', () => {
+  it('propagates error and clears loading', async () => {
+    mockGetCurrentUser.mockResolvedValue({ userId: 'u1' });
+    mockFetchUserAttributes.mockResolvedValue({ email: 'alice@cgiar.org' });
+    mockAmplifySignOut.mockRejectedValue(new Error('NetworkError'));
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
+
+    await expect(
+      act(async () => {
+        await result.current.signOut();
+      }),
+    ).rejects.toThrow('NetworkError');
+    expect(result.current.isLoading).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// signIn additional branches
+// ---------------------------------------------------------------------------
+describe('signIn() additional branches', () => {
+  it('returns early without authenticating when isSignedIn is false', async () => {
+    mockAmplifySignIn.mockResolvedValue({ isSignedIn: false });
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.signIn('alice@cgiar.org', 'password');
+    });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('re-throws generic errors (not UserAlreadyAuthenticatedException)', async () => {
+    mockAmplifySignIn.mockRejectedValue(new Error('NotAuthorizedException'));
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await expect(
+      act(async () => {
+        await result.current.signIn('alice@cgiar.org', 'wrongpassword');
+      }),
+    ).rejects.toThrow('NotAuthorizedException');
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('clears stale session when UserAlreadyAuthenticatedException + loadCognitoUser fails', async () => {
+    const error = new Error('User already authenticated');
+    error.name = 'UserAlreadyAuthenticatedException';
+    mockAmplifySignIn.mockRejectedValue(error);
+    // First call (mount session check) fails, second call (inside catch) also fails
+    mockGetCurrentUser.mockRejectedValue(new Error('No user'));
+    mockAmplifySignOut.mockResolvedValue(undefined);
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let thrown: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.signIn('alice@cgiar.org', 'password');
+      } catch (e) {
+        thrown = e as Error;
+      }
+    });
+    expect(thrown?.message).toContain('previous session was invalid');
+    expect(mockAmplifySignOut).toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// signInWithSSO error branches
+// ---------------------------------------------------------------------------
+describe('signInWithSSO() error branches', () => {
+  it('recovers session when "already" error + loadCognitoUser succeeds', async () => {
+    mockSignInWithRedirect.mockRejectedValue(new Error('There is already a signed in user'));
+    mockGetCurrentUser.mockResolvedValue({ userId: 'u1' });
+    mockFetchUserAttributes.mockResolvedValue({ email: 'alice@cgiar.org', name: 'Alice' });
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.signInWithSSO();
+    });
+
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.user?.email).toBe('alice@cgiar.org');
+  });
+
+  it('clears session when "already" error + loadCognitoUser fails', async () => {
+    mockSignInWithRedirect.mockRejectedValue(new Error('There is already a signed in user'));
+    mockGetCurrentUser.mockRejectedValue(new Error('No user'));
+    mockAmplifySignOut.mockResolvedValue(undefined);
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let thrown: Error | undefined;
+    await act(async () => {
+      try {
+        await result.current.signInWithSSO();
+      } catch (e) {
+        thrown = e as Error;
+      }
+    });
+    expect(thrown?.message).toContain('Previous session was cleared');
+    expect(mockAmplifySignOut).toHaveBeenCalled();
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it('re-throws non-"already" errors', async () => {
+    mockSignInWithRedirect.mockRejectedValue(new Error('NetworkError'));
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await expect(
+      act(async () => {
+        await result.current.signInWithSSO();
+      }),
+    ).rejects.toThrow('NetworkError');
+    expect(result.current.isLoading).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getIdToken — null when Cognito not configured
+// ---------------------------------------------------------------------------
+describe('getIdToken() when Cognito not configured', () => {
+  it('returns null when isCognitoConfigured is false', async () => {
+    amplifyConfig.isCognitoConfigured = false;
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let token: string | null = 'not-null';
+    await act(async () => {
+      token = await result.current.getIdToken();
+    });
+    expect(token).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hub listener
+// ---------------------------------------------------------------------------
+describe('Hub listener', () => {
+  it('sets unauthenticated on signInWithRedirect_failure', async () => {
+    // Capture the Hub listener callback
+    let hubCallback: ((data: { payload: { event: string } }) => void) | undefined;
+    mockHubListen.mockImplementation((_channel: string, cb: (data: { payload: { event: string } }) => void) => {
+      hubCallback = cb;
+      return vi.fn();
+    });
+
+    // Start with an authenticated session
+    mockGetCurrentUser.mockResolvedValue({ userId: 'u1' });
+    mockFetchUserAttributes.mockResolvedValue({ email: 'alice@cgiar.org' });
+
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.isAuthenticated).toBe(true));
+
+    // Simulate redirect failure
+    await act(async () => {
+      hubCallback?.({ payload: { event: 'signInWithRedirect_failure' } });
+    });
+
+    expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.user).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // useAuth outside provider
 // ---------------------------------------------------------------------------
 describe('useAuth()', () => {

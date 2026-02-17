@@ -140,3 +140,49 @@ class TestValidatorStringLengths:
             validate_submission(valid_submission_body)
         fields = [e["field"] for e in exc_info.value.errors]
         assert "studyTitle" in fields
+
+
+class TestValidatorFormatValidation:
+    def test_malformed_email_rejected(self, valid_submission_body):
+        valid_submission_body["contactEmail"] = "notanemail"
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        errors = {e["field"]: e["message"] for e in exc_info.value.errors}
+        assert "contactEmail" in errors
+        assert "valid email" in errors["contactEmail"]
+
+    def test_invalid_yes_no_answer(self, valid_submission_body):
+        valid_submission_body["proposalAvailable"] = {"answer": "maybe"}
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        errors = {e["field"]: e["message"] for e in exc_info.value.errors}
+        assert "proposalAvailable" in errors
+        assert "'yes' or 'no'" in errors["proposalAvailable"]
+
+    def test_malformed_url_rejected(self, valid_submission_body):
+        valid_submission_body["proposalAvailable"] = {"answer": "yes", "link": "not-a-url"}
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        errors = {e["field"]: e["message"] for e in exc_info.value.errors}
+        assert "proposalAvailable.link" in errors
+        assert "valid URL" in errors["proposalAvailable.link"]
+
+    def test_empty_string_in_required_array(self, valid_submission_body):
+        valid_submission_body["otherCenters"] = ["IFPRI", ""]
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        errors = {e["field"]: e["message"] for e in exc_info.value.errors}
+        assert "otherCenters" in errors
+        assert "non-empty strings" in errors["otherCenters"]
+
+    def test_optional_yes_no_absent_passes(self, valid_submission_body):
+        valid_submission_body.pop("preAnalysisPlan", None)
+        # Should not raise
+        validate_submission(valid_submission_body)
+
+    def test_optional_yes_no_missing_link(self, valid_submission_body):
+        valid_submission_body["preAnalysisPlan"] = {"answer": "yes", "link": ""}
+        with pytest.raises(ValidationError) as exc_info:
+            validate_submission(valid_submission_body)
+        fields = [e["field"] for e in exc_info.value.errors]
+        assert "preAnalysisPlan.link" in fields
