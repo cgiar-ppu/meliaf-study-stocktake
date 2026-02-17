@@ -163,7 +163,7 @@ All core functional features are implemented and deployed:
 ### Testing
 
 - **Backend**: 88 unit tests (pytest + moto) covering all Lambda handlers, validators, Cognito triggers, and shared utilities. Run via `pytest tests/ -v` in `backend/`.
-- **Frontend**: 405 tests (Vitest + React Testing Library) across 46 test files covering components, pages, hooks, utilities, and data modules. Run via `npm run test`.
+- **Frontend**: 433 tests (Vitest + React Testing Library) across 48 test files covering components, pages, hooks, utilities, data modules, auth config (`amplify.ts`), and route tree / QueryClient config (`App.tsx`). Run via `npm run test`.
 - **E2E**: 33 Playwright tests across 7 spec files covering navigation, form submission (all 6 sections), geographic cascading, My Submissions CRUD, dashboard table/filtering/export, form auto-save/draft recovery, and Section C conditional visibility. Run via `npm run test:e2e`. Uses `--mode e2e` with `.env.e2e` (demo mode, mocked API via `page.route()`). Config in `e2e/playwright.config.ts`.
 - **Accessibility**: 18 axe-core tests (`vitest-axe`) across 10 `.a11y.test.tsx` files scanning custom form components (MultiSelect, FilteredMultiSelect, CreatableMultiSelect, SearchableSelect, TagInput, YesNoLinkField), auth pages (SignIn, SignUp, ForgotPassword), and Header. Run as part of `npm run test`.
 - **Frontend-backend contract sync**: `src/lib/contractSync.test.ts` (24 tests) reads `backend/functions/shared/constants.py` as raw text and verifies enum values, field length limits, and Section C conditional logic match the frontend TypeScript definitions. The frontend CI workflow also triggers on changes to `constants.py` to catch drift immediately.
@@ -174,10 +174,7 @@ All core functional features are implemented and deployed:
 
 ### Testing gaps
 
-1. **Remaining frontend unit tests** — High-value untested files:
-   - `amplify.ts` — auth config, feature flags (`isCognitoConfigured`, `isSSOConfigured`)
-   - `App.tsx` — route tree integrity, QueryClient config
-   - Chart components (`DonutChart.tsx`, `HorizontalBarChart.tsx`, `PipelineStatusChart.tsx`) and `chartColors.ts` are low-priority — they are purely presentational Recharts wrappers with no business logic. Visual regressions in charts are better caught by E2E/visual regression tests than unit tests.
+1. **Low-priority chart components** — `DonutChart.tsx`, `HorizontalBarChart.tsx`, `PipelineStatusChart.tsx`, and `chartColors.ts` are purely presentational Recharts wrappers with no business logic. Visual regressions in charts are better caught by E2E/visual regression tests than unit tests.
 
 ### Infrastructure / production hardening
 
