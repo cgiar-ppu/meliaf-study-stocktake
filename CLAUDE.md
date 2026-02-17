@@ -75,7 +75,7 @@ Key files: `SectionB.tsx`, `cgiarGeography.ts` (8 CGIAR regions, 249 countries, 
 
 ### Data Layer
 
-`src/lib/api.ts` is the API client — typed fetch wrapper with error handling. Exports `submitStudy()`, `listSubmissions()`, `getSubmissionHistory()`. Base URL set via `VITE_API_URL` env var (see `.env.development`). TanStack React Query is used for data fetching (`useQuery` in `MySubmissions.tsx`).
+`src/lib/api.ts` is the API client — typed fetch wrapper with error handling. Exports `submitStudy()`, `updateSubmission()`, `deleteSubmission()`, `restoreSubmission()`, `listSubmissions()`, `listAllSubmissions()`, `getSubmission()`, `getSubmissionHistory()`, `getUploadUrl()`, `listFiles()`, `deleteFile()`, `uploadFileToS3()`. Base URL set via `VITE_API_URL` env var (see `.env.development`). TanStack React Query is used for data fetching (`useQuery` in `MySubmissions.tsx`).
 
 ### UI Components
 
@@ -123,6 +123,9 @@ pytest tests/ -v             # Run backend unit tests
 | DELETE | /submissions/{id} | delete_submission | Soft delete (new version with status=archived) |
 | POST | /submissions/{id}/restore | restore_submission | Restore (unarchive) a submission |
 | GET | /submissions/{id}/history | get_submission_history | All versions of a submission |
+| POST | /submissions/{id}/upload-url | get_upload_url | Generate presigned S3 PUT URL for file upload |
+| GET | /submissions/{id}/files | list_files | List uploaded files for a submission |
+| DELETE | /submissions/{id}/files/{filename} | delete_file | Delete an uploaded file from S3 |
 
 ### DynamoDB Design
 
