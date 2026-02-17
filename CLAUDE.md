@@ -172,17 +172,22 @@ All core functional features are implemented and deployed:
 
 ## Remaining Work
 
-### Testing gaps (medium priority)
+### Testing gaps
 
-1. **Chart components** — `DonutChart.tsx`, `HorizontalBarChart.tsx`, `PipelineStatusChart.tsx`, and `chartColors.ts` are purely presentational Recharts wrappers; better suited for E2E/visual regression tests
-2. **FileUpload.tsx** — upload failure via ref, delete failure, duplicate filename handling
-3. **MySubmissions.tsx** — error state rendering when `listSubmissions` rejects
-4. **SubmissionPreview.tsx** — field value rendering, files query states
-5. **Backend restore_submission** — auth check, restoring non-archived submission
-6. **Backend delete_file** — URL-encoded filename decode
-7. **Backend get_upload_url** — missing contentType, filename sanitization
-8. **Dashboard export** — xlsx/csv/json serialization (currently mocked away in tests)
-9. **E2E** — sub-national geographic cascading, edit existing submission flow
+**Security bug:**
+1. **`restore_submission` missing auth check** — handler does not call `get_user_identity()` at all, unlike `delete_file` and `get_upload_url`. Anyone with the API URL can restore archived submissions. Needs a code fix, not just a test.
+
+**Functional gaps (medium priority):**
+2. **Dashboard export serialization** — XLSX/file-saver mocks are stubs; no test verifies that clicking Export calls `XLSX.writeFile` or that `exportFormatters` produce correct labels. Broken formatters would ship garbled spreadsheets silently.
+3. **FileUpload.tsx error paths** — `uploadPendingFiles()` ref method has no test for upload failure mid-way (S3 rejection). Also: delete failure toast, duplicate filename filtering.
+4. **E2E sub-national cascading** — the most complex UI interaction (5,020 searchable entries, FilteredMultiSelect, triple auto-population) has zero E2E coverage. The other 4 geographic scopes are tested.
+5. **Backend delete_file** — URL-encoded filename decode (`unquote`), S3 key matching without underscore prefix
+6. **Backend get_upload_url** — missing contentType validation, filename with slashes sanitized to underscores
+7. **SubmissionPreview.tsx files states** — files loading spinner and populated file links are untested (field values and Section C conditional are already covered)
+8. **E2E edit submission flow** — existing test only verifies Edit button navigates to `/submit/:id`; no test loads existing data, modifies fields, or verifies PUT request
+
+**Low priority (skip):**
+9. **Chart components** — `DonutChart.tsx`, `HorizontalBarChart.tsx`, `PipelineStatusChart.tsx`, and `chartColors.ts` are purely presentational Recharts wrappers; better suited for E2E/visual regression tests
 
 ### Infrastructure / production hardening
 
