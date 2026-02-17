@@ -50,6 +50,7 @@ export function TagInput({ value, onChange, placeholder, className }: TagInputPr
           {tag}
           <button
             type="button"
+            aria-label={`Remove ${tag}`}
             onClick={() => removeTag(tag)}
             className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
           >
@@ -64,6 +65,7 @@ export function TagInput({ value, onChange, placeholder, className }: TagInputPr
         onKeyDown={handleKeyDown}
         onBlur={addTag}
         placeholder={value.length === 0 ? placeholder : ''}
+        aria-label={placeholder || 'Add item'}
         className="flex-1 border-0 p-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
       />
     </div>

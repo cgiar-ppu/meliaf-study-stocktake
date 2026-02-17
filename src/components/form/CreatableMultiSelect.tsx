@@ -78,6 +78,7 @@ export function CreatableMultiSelect({
         <div
           role="combobox"
           aria-expanded={open}
+          aria-label={placeholder}
           className="flex h-auto min-h-10 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent/50 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
           tabIndex={0}
         >
@@ -94,6 +95,7 @@ export function CreatableMultiSelect({
                 {suggestionMap[v] ?? v}
                 <button
                   type="button"
+                  aria-label={`Remove ${suggestionMap[v] ?? v}`}
                   className="ml-1 rounded-full outline-none ring-offset-background focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onClick={(e) => remove(v, e)}
                 >

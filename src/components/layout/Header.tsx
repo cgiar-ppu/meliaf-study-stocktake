@@ -131,6 +131,7 @@ export function Header() {
             variant="ghost"
             size="icon"
             className="md:hidden"
+            aria-label="Toggle navigation menu"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
