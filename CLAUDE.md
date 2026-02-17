@@ -156,7 +156,25 @@ All core functional features are implemented and deployed:
 - **Frontend hosting**: Amplify Hosting on custom domain (`meliaf-study-stocktake.synapsis-analytics.com`)
 - **CI/CD**: GitHub Actions for backend (SAM), Amplify auto-deploy for frontend
 
+### Testing
+
+- **Backend**: 88 unit tests (pytest + moto) covering all Lambda handlers, validators, Cognito triggers, and shared utilities. Run via `pytest tests/ -v` in `backend/`.
+- **Frontend**: 387 tests (Vitest + React Testing Library) across 36 test files covering components, pages, hooks, utilities, and data modules. Run via `npm run test`.
+- **Frontend-backend contract sync**: `src/lib/contractSync.test.ts` (24 tests) reads `backend/functions/shared/constants.py` as raw text and verifies enum values, field length limits, and Section C conditional logic match the frontend TypeScript definitions. The frontend CI workflow also triggers on changes to `constants.py` to catch drift immediately.
+- **Smoke test**: `backend/test-api.sh` runs the full CRUD lifecycle against the deployed API.
+- **CI**: Backend tests run in GitHub Actions on push/PR to `main` (when `backend/` changes). Frontend tests run in GitHub Actions on push/PR to `main` (when `src/`, config files, or `backend/functions/shared/constants.py` change).
+
 ## Remaining Work
+
+### Testing gaps
+
+1. **E2E tests (Playwright)** — the biggest gap. No end-to-end tests exist. Unit tests mock away the real multi-step form submission flow, geographic cascading in a browser, auth redirects, and dashboard loading real data. Even 5–10 happy-path scenarios (sign in → submit study → view in dashboard → archive → restore) would catch bugs that unit tests structurally cannot.
+2. **Accessibility tests (axe-core)** — no WCAG compliance testing. Can be added to existing Vitest component tests via `vitest-axe` with low effort. Important for a CGIAR tool with international users (screen readers, keyboard navigation, color contrast).
+3. **Remaining frontend unit tests** — 21 source files are untested. High-value targets:
+   - `amplify.ts` — auth config, feature flags (`isCognitoConfigured`, `isSSOConfigured`)
+   - `chartColors.ts` — color builder functions for dashboard charts
+   - `DonutChart.tsx`, `HorizontalBarChart.tsx`, `PipelineStatusChart.tsx` — data-critical dashboard chart components
+   - `App.tsx` — route tree integrity, QueryClient config
 
 ### Infrastructure / production hardening
 
