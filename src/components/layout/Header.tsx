@@ -14,6 +14,7 @@ import {
   FileText,
   FolderOpen,
   Info,
+  BookOpen,
   User,
   LogOut,
   Menu,
@@ -29,6 +30,7 @@ const navItems = [
   { to: '/submissions', label: 'My Submissions', icon: FolderOpen },
   { to: '/submit', label: 'Submit Study', icon: FileText },
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/definitions', label: 'Definitions', icon: BookOpen },
 ];
 
 export function Header() {

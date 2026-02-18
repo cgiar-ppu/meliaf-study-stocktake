@@ -20,6 +20,7 @@ const SignUp = lazy(() => import("./pages/SignUp"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
 const ConfirmEmail = lazy(() => import("./pages/ConfirmEmail"));
 const EditSubmission = lazy(() => import("./pages/EditSubmission"));
+const Definitions = lazy(() => import("./pages/Definitions"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -103,6 +104,17 @@ const App = () => (
                     <ProtectedRoute>
                       <AppLayout>
                         <EditSubmission />
+                      </AppLayout>
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/definitions"
+                  element={
+                    <ProtectedRoute>
+                      <AppLayout>
+                        <Definitions />
                       </AppLayout>
                     </ProtectedRoute>
                   }

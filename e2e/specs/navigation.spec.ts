@@ -29,6 +29,11 @@ test.describe('Navigation', () => {
     await expect(page).toHaveURL('/dashboard');
     await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 
+    // Navigate to Definitions
+    await page.getByRole('link', { name: 'Definitions' }).click();
+    await expect(page).toHaveURL('/definitions');
+    await expect(page.getByRole('heading', { name: /Study Classifications/i })).toBeVisible();
+
     // Navigate back to Introduction
     await page.getByRole('link', { name: 'Introduction' }).click();
     await expect(page).toHaveURL('/');
