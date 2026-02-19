@@ -62,6 +62,7 @@ import {
   BookOpen,
   Columns3,
   Download,
+  Eye,
   FolderOpen,
   ChevronLeft,
   ChevronRight,
@@ -95,6 +96,7 @@ import {
   DATA_COLLECTION_METHOD_OPTIONS,
 } from '@/types';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
+import { SubmissionPreviewSheet } from '@/components/submission/SubmissionPreviewSheet';
 import { CGIAR_REGION_OPTIONS, CGIAR_COUNTRY_OPTIONS } from '@/data/cgiarGeography';
 import { SUBNATIONAL_LOOKUP } from '@/data/subnationalUnits';
 
@@ -666,6 +668,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
 export default function Dashboard() {
   const { isAuthenticated } = useAuth();
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -824,6 +827,7 @@ export default function Dashboard() {
                   <TableHeader>
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
+                        <TableHead className="w-10 whitespace-nowrap text-xs font-medium">Preview</TableHead>
                         {headerGroup.headers.map((header) => (
                           <DraggableTableHead key={header.id} header={header} />
                         ))}
@@ -835,7 +839,7 @@ export default function Dashboard() {
                 {table.getRowModel().rows.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={table.getVisibleFlatColumns().length}
+                      colSpan={table.getVisibleFlatColumns().length + 1}
                       className="h-24 text-center text-muted-foreground"
                     >
                       No results match your filters.
@@ -844,6 +848,16 @@ export default function Dashboard() {
                 ) : (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
+                      <TableCell className="whitespace-nowrap">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => setPreviewId(row.original.submissionId)}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell key={cell.id} className="whitespace-nowrap">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -905,6 +919,12 @@ export default function Dashboard() {
         </>
       )}
     </div>
+
+    <SubmissionPreviewSheet
+      submissionId={previewId}
+      onClose={() => setPreviewId(null)}
+      mode="readonly"
+    />
     </TooltipProvider>
   );
 }

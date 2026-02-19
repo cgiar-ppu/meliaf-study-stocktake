@@ -21,7 +21,7 @@ interface SubmissionPreviewSheetProps {
   submissionId: string | null;
   onClose: () => void;
   onEdit?: (submissionId: string) => void;
-  mode?: 'active' | 'archived';
+  mode?: 'active' | 'archived' | 'readonly';
 }
 
 export function SubmissionPreviewSheet({
@@ -34,7 +34,7 @@ export function SubmissionPreviewSheet({
   const queryClient = useQueryClient();
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
-  const targetStatus = mode === 'active' ? 'active' : 'archived';
+  const targetStatus = mode === 'archived' ? 'archived' : 'active';
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['submission', submissionId, targetStatus],
@@ -113,7 +113,7 @@ export function SubmissionPreviewSheet({
               <Button variant="outline" onClick={onClose}>
                 Close
               </Button>
-              {mode === 'active' ? (
+              {mode === 'active' && (
                 <>
                   <Button
                     variant="destructive"
@@ -129,7 +129,8 @@ export function SubmissionPreviewSheet({
                     </Button>
                   )}
                 </>
-              ) : (
+              )}
+              {mode === 'archived' && (
                 <Button
                   onClick={() => restoreMutation.mutate()}
                   disabled={restoreMutation.isPending}
