@@ -89,7 +89,7 @@ function buildSections(): DefinitionSection[] {
   return [
     {
       title: 'Study Types',
-      subtitle: 'Ten study types spanning the full cycle of research impact',
+      subtitle: 'Ten mutually exclusive study types spanning the full cycle of research impact',
       color: STUDY_TYPE_BADGE,
       entries: STUDY_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label, description: o.description })),
     },

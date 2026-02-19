@@ -12,10 +12,45 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { AlertCircle, Archive, Pencil, RotateCcw } from 'lucide-react';
-import { getSubmissionHistory, deleteSubmission, restoreSubmission } from '@/lib/api';
+import { getSubmissionHistory, deleteSubmission, restoreSubmission, lookupUsers } from '@/lib/api';
+import type { UserInfo, SubmissionItem } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { SubmissionPreview } from './SubmissionPreview';
 import { ArchiveConfirmDialog } from './ArchiveConfirmDialog';
+
+function displayName(users: Record<string, UserInfo> | undefined, userId: string): string | null {
+  if (!users) return null;
+  const u = users[userId];
+  if (!u) return null;
+  return u.name || u.email;
+}
+
+function formatDescription(
+  data: SubmissionItem,
+  users?: Record<string, UserInfo>,
+): string {
+  const date = new Date(data.createdAt).toLocaleDateString();
+  const version = data.version;
+  const authorName = displayName(users, data.userId);
+  const modifierName = data.modifiedBy ? displayName(users, data.modifiedBy) : null;
+
+  if (version === 1) {
+    const byAuthor = authorName ? ` by ${authorName}` : '';
+    return `Submitted on ${date}${byAuthor} · v1`;
+  }
+
+  // v2+
+  const byModifier = modifierName ? ` by ${modifierName}` : '';
+  const sameEditor = data.userId === data.modifiedBy;
+
+  if (sameEditor || !data.modifiedBy) {
+    const byAuthor = authorName ? ` by ${authorName}` : '';
+    return `Last updated on ${date}${byAuthor} · v${version}`;
+  }
+
+  const origAuthor = authorName ? `Originally submitted by ${authorName} · ` : '';
+  return `Last updated on ${date}${byModifier}\n${origAuthor}v${version}`;
+}
 
 interface SubmissionPreviewSheetProps {
   submissionId: string | null;
@@ -45,6 +80,17 @@ export function SubmissionPreviewSheet({
       return match;
     },
     enabled: !!submissionId,
+  });
+
+  const userIds = data
+    ? [...new Set([data.userId, data.modifiedBy].filter(Boolean) as string[])]
+    : [];
+
+  const { data: usersData } = useQuery({
+    queryKey: ['users', ...userIds],
+    queryFn: () => lookupUsers(userIds),
+    enabled: userIds.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   const archiveMutation = useMutation({
@@ -79,7 +125,7 @@ export function SubmissionPreviewSheet({
           <SheetHeader>
             <SheetTitle>{data ? `${data.studyTitle} · ${data.studyId as string}` : 'Submission Preview'}</SheetTitle>
             <SheetDescription>
-              {data ? `v${data.version} — ${new Date(data.createdAt).toLocaleDateString()}` : 'Loading...'}
+              {data ? formatDescription(data, usersData?.users) : 'Loading...'}
             </SheetDescription>
           </SheetHeader>
 

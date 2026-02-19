@@ -284,6 +284,7 @@ Resources:
               - dynamodb:GetItem
               - dynamodb:UpdateItem
               - dynamodb:Query
+              - dynamodb:BatchGetItem
             Resource:
               - !GetAtt UsersTable.Arn
 
@@ -563,6 +564,27 @@ Resources:
             RestApiId: !Ref MeliafApi
             Path: /submissions/{id}/history
             Method: get
+
+  # --- User Lookup Functions ---
+  LookupUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub meliaf-lookup-users-${Environment}
+      CodeUri: functions/
+      Handler: lookup_users.app.lambda_handler
+      Description: Batch lookup user display names by user IDs
+      Environment:
+        Variables:
+          USERS_TABLE: !Ref UsersTable
+      Policies:
+        - !Ref UsersDynamoDBPolicy
+      Events:
+        LookupUsers:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MeliafApi
+            Path: /users/lookup
+            Method: post
 
   # --- File Upload Functions ---
   GetUploadUrlFunction:

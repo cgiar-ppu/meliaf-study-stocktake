@@ -28,7 +28,7 @@ const SECTIONS: DefinitionSectionData[] = [
   {
     title: 'Study Types',
     intro:
-      'MELIAF recognises ten study types that span the full cycle of research impact — from forward-looking assessments through to synthesis and learning.',
+      'MELIAF recognises ten mutually exclusive study types that span the full cycle of research impact — from forward-looking assessments through to synthesis and learning.',
     options: STUDY_TYPE_OPTIONS,
   },
   {

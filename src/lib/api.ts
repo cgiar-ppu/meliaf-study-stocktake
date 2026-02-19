@@ -195,6 +195,21 @@ export function deleteFile(submissionId: string, filename: string): Promise<{ me
   });
 }
 
+// --- User Lookup API ---
+
+export interface UserInfo {
+  userId: string;
+  email: string;
+  name?: string;
+}
+
+export function lookupUsers(userIds: string[]): Promise<{ users: Record<string, UserInfo> }> {
+  return request<{ users: Record<string, UserInfo> }>('/users/lookup', {
+    method: 'POST',
+    body: JSON.stringify({ userIds }),
+  });
+}
+
 export async function uploadFileToS3(presignedUrl: string, file: File): Promise<void> {
   const response = await fetch(presignedUrl, {
     method: 'PUT',
