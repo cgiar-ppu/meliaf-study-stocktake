@@ -95,6 +95,17 @@ export default function Introduction() {
                   performanceandresults@cgiar.org
                 </a>
               </li>
+              <li>
+                GitHub:{" "}
+                <a
+                  href="https://github.com/cgiar-ppu/meliaf-study-stocktake"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80"
+                >
+                  cgiar-ppu/meliaf-study-stocktake
+                </a>
+              </li>
             </ul>
           </section>
         </CardContent>
