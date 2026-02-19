@@ -4,6 +4,7 @@ import { setupApiMocks, clearLocalStorage } from '../fixtures/test-helpers';
 test.describe('Definitions page', () => {
   test.beforeEach(async ({ page }) => {
     await setupApiMocks(page);
+    await page.goto('/');
     await clearLocalStorage(page);
   });
 
