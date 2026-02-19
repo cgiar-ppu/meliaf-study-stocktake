@@ -58,7 +58,15 @@ export default function Introduction() {
           <section className="space-y-3">
             <h2 className="text-xl font-semibold">Where the data is stored</h2>
             <p>
-              Data will be stored in CG360, and the web application code is available on GitHub.
+              Data will be stored in CG360, and the web application code is available on{" "}
+              <a
+                href="https://github.com/cgiar-ppu/meliaf-study-stocktake"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline hover:text-primary/80"
+              >
+                GitHub
+              </a>.
             </p>
           </section>
 
