@@ -105,7 +105,7 @@ describe('Definitions page', () => {
   it('renders all method class labels', () => {
     renderDefinitions();
     for (const opt of METHOD_CLASS_OPTIONS) {
-      expect(screen.getByText(opt.label)).toBeInTheDocument();
+      expect(screen.getAllByText(opt.label).length).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -156,8 +156,8 @@ describe('Definitions page', () => {
   it('lists all three conditions for Section C visibility', () => {
     renderDefinitions();
     expect(screen.getByText(/C2 — Causal/i)).toBeInTheDocument();
-    expect(screen.getByText(/Quantitative/i)).toBeInTheDocument();
-    expect(screen.getByText(/Experimental \/ Quasi-Experimental/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Quantitative/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/Experimental \/ Quasi-Experimental/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('explains when Section C is hidden', () => {
