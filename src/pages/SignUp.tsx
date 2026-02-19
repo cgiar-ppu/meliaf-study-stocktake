@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Info } from 'lucide-react';
 import cgiarLogo from '@/assets/cgiar-logo.png';
 
-const ALLOWED_DOMAINS = ['cgiar.org', 'synapsis-analytics.com'];
+const ALLOWED_DOMAINS = ['cgiar.org', 'icrisat.org', 'synapsis-analytics.com'];
 
 function getEmailDomain(email: string): string {
   const parts = email.split('@');

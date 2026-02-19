@@ -25,7 +25,7 @@ MELIAF uses AWS Cognito as the identity provider, supporting both email/password
 Standard Cognito sign-up flow with email verification:
 
 1. User enters email + password on `/signup`
-2. Pre Sign-Up Lambda validates email domain (must be `cgiar.org` or `synapsis-analytics.com`)
+2. Pre Sign-Up Lambda validates email domain (must be `cgiar.org`, `icrisat.org`, or `synapsis-analytics.com`)
 3. Custom Message Lambda sends branded HTML confirmation email with a verification link
 4. User clicks the link → Confirm Sign-Up Lambda (`/confirm-email`) confirms the account and redirects to `/signin?confirmed=true`
 5. Post Confirmation Lambda creates a user entity in the `meliaf-users-{env}` DynamoDB table
@@ -78,7 +78,7 @@ In dev/test environments (`ENVIRONMENT` != `prod`), when no JWT claims are prese
 ### Pre Sign-Up (`functions/cognito_triggers/pre_signup.py`)
 
 - Validates that the email domain is in the allowed list
-- Configured via `ALLOWED_EMAIL_DOMAINS` env var (default: `cgiar.org,synapsis-analytics.com`)
+- Configured via `ALLOWED_EMAIL_DOMAINS` env var (default: `cgiar.org,icrisat.org,synapsis-analytics.com`)
 - Rejects sign-up with an error message if the domain is not allowed
 - Case-insensitive domain matching
 
@@ -166,7 +166,7 @@ The Azure AD app registration must be configured with:
 |-----------|-------------|---------|
 | `AzureADClientId` | Azure AD application (client) ID | — |
 | `AzureADTenantId` | Azure AD directory (tenant) ID | — |
-| `AllowedEmailDomains` | Comma-separated domains for sign-up | `cgiar.org,synapsis-analytics.com` |
+| `AllowedEmailDomains` | Comma-separated domains for sign-up | `cgiar.org,icrisat.org,synapsis-analytics.com` |
 
 ## Demo Mode (Inactive)
 

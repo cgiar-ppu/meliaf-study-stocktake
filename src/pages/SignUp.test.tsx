@@ -53,7 +53,7 @@ describe('SignUp', () => {
 
   it('shows domain restriction info', () => {
     renderSignUp();
-    expect(screen.getByText(/cgiar.org, synapsis-analytics.com/)).toBeInTheDocument();
+    expect(screen.getByText(/cgiar.org, icrisat.org, synapsis-analytics.com/)).toBeInTheDocument();
   });
 
   it('shows error on empty submit', async () => {
