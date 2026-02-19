@@ -34,7 +34,7 @@ Parameters:
       - ERROR
   AllowedEmailDomains:
     Type: CommaDelimitedList
-    Default: "cgiar.org,synapsis-analytics.com"
+    Default: "cgiar.org,synapsis-analytics.com,icrisat.org"
     Description: Comma-separated list of allowed email domains for sign-up
   FrontendUrl:
     Type: String
