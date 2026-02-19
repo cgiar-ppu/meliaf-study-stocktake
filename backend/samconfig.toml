@@ -13,7 +13,7 @@ s3_prefix = "meliaf-backend-dev"
 region = "eu-central-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=dev LogLevel=DEBUG FrontendUrl=https://meliaf-study-stocktake.synapsis-analytics.com AzureADClientId=aebb477b-dbd5-4112-b0a4-810956065fdc AzureADTenantId=6afa0e00-fa14-40b7-8a2e-22a7f8c357d5"
+parameter_overrides = "Environment=dev LogLevel=DEBUG FrontendUrl=https://meliaf-study-stocktake.synapsis-analytics.com AzureADClientId=aebb477b-dbd5-4112-b0a4-810956065fdc AzureADTenantId=6afa0e00-fa14-40b7-8a2e-22a7f8c357d5 AllowedEmailDomains=cgiar.org,icrisat.org,synapsis-analytics.com"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=dev ManagedBy=sam"
 
@@ -23,7 +23,7 @@ s3_prefix = "meliaf-backend-staging"
 region = "eu-central-1"
 confirm_changeset = false
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=staging LogLevel=INFO FrontendUrl=https://staging.meliaf.cgiar.org AzureADClientId=aebb477b-dbd5-4112-b0a4-810956065fdc AzureADTenantId=6afa0e00-fa14-40b7-8a2e-22a7f8c357d5"
+parameter_overrides = "Environment=staging LogLevel=INFO FrontendUrl=https://staging.meliaf.cgiar.org AzureADClientId=aebb477b-dbd5-4112-b0a4-810956065fdc AzureADTenantId=6afa0e00-fa14-40b7-8a2e-22a7f8c357d5 AllowedEmailDomains=cgiar.org,icrisat.org,synapsis-analytics.com"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=staging ManagedBy=sam"
 
@@ -33,6 +33,6 @@ s3_prefix = "meliaf-backend-prod"
 region = "eu-central-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM CAPABILITY_NAMED_IAM"
-parameter_overrides = "Environment=prod LogLevel=WARNING FrontendUrl=https://meliaf.cgiar.org"
+parameter_overrides = "Environment=prod LogLevel=WARNING FrontendUrl=https://meliaf.cgiar.org AllowedEmailDomains=cgiar.org,icrisat.org,synapsis-analytics.com"
 fail_on_empty_changeset = false
 tags = "Project=meliaf-study-stocktake Environment=prod ManagedBy=sam"
