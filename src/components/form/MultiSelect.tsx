@@ -100,6 +100,7 @@ export function MultiSelect({
                   <CommandItem
                     key={option.value}
                     value={option.value}
+                    keywords={[option.label]}
                     onSelect={() => toggle(option.value)}
                   >
                     <Check
